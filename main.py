@@ -1,261 +1,141 @@
 #!/usr/bin/python
-import time, datetime, dateutil.relativedelta, signal, sys, socket, logging, xmlrpclib, threading
-from SimpleXMLRPCServer import SimpleXMLRPCServer
-import subprocess,re
-import RPi.GPIO as GPIO
-from Adafruit_ADS1x15 import ADS1x15
-import Adafruit_DHT
-import json
+from array import array
+from numbers import Number
+import statistics
+import logging
+from time import sleep
+from datetime import time, datetime, timedelta
 
-# Flask is used for REST api
-from flask import Flask
-from flask_restful import Resource, Api
-from flask_cors import CORS, cross_origin
+from btlewrap.bluepy import BluepyBackend
+from btlewrap.base import BluetoothBackendException
+from  RPi import GPIO
+from miflora.miflora_poller import (
+    MI_BATTERY,
+    MI_CONDUCTIVITY,
+    MI_LIGHT,
+    MI_MOISTURE,
+    MI_TEMPERATURE,
+    MiFloraPoller,
+)
 
-logging.basicConfig(filename='/var/log/water-plant.log',format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S', filemode='w', level=logging.DEBUG)
+LOGFILE='/var/log/water-plant.log'
+LOGFILE='/tmp/water-plant.log'
+logging.basicConfig(filename=LOGFILE,format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S', filemode='w', level=logging.DEBUG)
 
-GPIO.setmode(GPIO.BOARD)
-#GPIO.setwarnings(False)
+class SoilSensorsGroup:
+    def __init__(self, sensors) -> None:
+        self.sensor_pollers = {}
+        self.last_battery_levels_checked = datetime.now() - timedelta(days=2)
+        for sensor in sensors:
+            self.sensor_pollers[sensor['name']] = MiFloraPoller(sensor['mac'], BluepyBackend)
 
-watering = False # this can be changed via XMLRPC
-moisture_threshold = 400
-watering_schedule = ['09:00','09:30']
-LAST_WATERING_THRESHOLD = 300
-WATERING_DURATION = 30
+    def get_moisture(self) -> int:
+        moisture_measurements = []
 
-PIN_DHT_SENSOR = 7
-PIN_MOISTURE_SWITCH = [23,21,24,22]
-PIN_MOISTURE_SENSOR = [0,1,3,2]
-PIN_PUMP_RELAY = [8,10,16,18]
+        for sensor_name, sensor_poller in self.sensor_pollers.items():
+            try:
+                measurment = sensor_poller.parameter_value(MI_MOISTURE)
+                print(f'{sensor_name} moisture measurement: {measurment}')
+                moisture_measurements.append(measurment)
+            except BluetoothBackendException:
+                print(f'Failed to read from {sensor_name}')
 
-CARBON_SERVER = '192.168.x.x'
-CARBON_PORT = 2003
-GRAPHITE_PREFIX = 'environmental.xxxxx.balcony'
+        measurements_avg = statistics.mean(moisture_measurements)
+        print(f'Aggregate moisture measurements: {measurements_avg}')
 
-# Enable REST API
-LISTENING_IP='0.0.0.0'
-app = Flask(__name__)
-app.use_reloader=False
-app.debug = False
-CORS(app)
+        return measurements_avg
 
-@app.route("/get/mode")
-def rest_api_get_mode():
-  try:
-    moisture_level
-  except NameError:
-    moisture_level_tmp = ['N/A','N/A','N/A','N/A']
-  else:
-    moisture_level_tmp = moisture_level
+    def check_battery(self) -> dict:
+        battery_levels = {}
+        for sensor_name, sensor_poller in self.sensor_pollers.items():
+            try:
+                measurment = sensor_poller.parameter_value(MI_BATTERY)
+                print(f'{sensor_name} battery measurement: {measurment}')
+                battery_levels[sensor_name] = measurment
+                self.last_battery_levels_checked = datetime.now()
+            except BluetoothBackendException:
+                print(f'Failed to read from {sensor_name}')
 
-  def time_diff_human_readable(t):
-    dt1 = datetime.datetime.fromtimestamp(int(t))
-    dt2 = datetime.datetime.fromtimestamp(int(time.time()))
-    rd = dateutil.relativedelta.relativedelta (dt2, dt1)
-    if rd.months > 0:
-      return "%dmths" % rd.months
-    elif rd.days > 0:
-      return "%dd" % rd.days
-    elif rd.hours > 0:
-      return "%dh" % rd.hours
-    elif rd.minutes > 0:
-      return "%dmin" % rd.minutes
-    else:
-      return "%dsec" % rd.seconds
-
-  last_watering_formatted = map((lambda x: time_diff_human_readable(x)),last_watering)
-  return json.dumps({'watering_mode' : watering, 'moisture_threshold' : moisture_threshold, 'moisture_level' : moisture_level_tmp, 'watering_schedule' : watering_schedule, 'last_watering' : last_watering_formatted})
-
-# TODO: add reqparse.RequestParser to validate choices, e.g: on/off
-@app.route("/set/mode/<string:status>")
-def rest_api_set_watering_mode(status):
-  watering = status
-  logging.info("watering mode changed to: %s" % status)
-  return 'watering_mode set to: %s' % status
-
-server_thread = threading.Thread(target=app.run,kwargs={'host':LISTENING_IP})
-server_thread.setDaemon(True)
-server_thread.start()
-
-# Enable network commands via XMLRPC
-XMLRPC_LISTEN_IP = '0.0.0.0'
-XMLRPC_PORT = 55000
-def set_watering_mode(mode):
-  if not isinstance(mode,bool):
-    return 'set_watering_mode func only accepts bool!'
-  global watering ; watering = mode
-  logging.info("watering mode changed to: %s" % mode)
-  return 'watering_mode set to: %s' % mode
-
-def set_moisture_threshold(v):
-  v = int(v)
-  #if not isinstance(v,int) or not (0 < v < 2000):
-  if not (0 < v < 2000):
-    logging.warn("Invalid value received for moisture_threshold: %s" % v)
-    return 'set_moisture_threshold func only accepts int!'
-  global moisture_threshold ; moisture_threshold = v
-  logging.info("moisture_threshold changed to: %s" % v)
-  return 'moisture_threshold set to: %s' % v
-
-def set_watering_schedule(from_hours,to_hours):
-  re_hours = re.compile('^[0-9][0-9]:[0-9]{2}$')
-  if re_hours.match(from_hours) and re_hours.match(to_hours):
-    global watering_schedule ; watering_schedule = [from_hours,to_hours]
-    logging.info("watering_schedule changed to: %s .. %s" % (from_hours,to_hours))
-    return "watering_schedule changed to: %s .. %s" % (from_hours,to_hours)
-  else:
-    logging.warn("Invalid value received for watering_schedule: %s - %s" % (from_hours,to_hours))
-    return 'watering_schedule func only 2 strings, e.g: "09:00" "09:30"'
-
-def get_mode():
-  try:
-    moisture_level
-  except NameError:
-    moisture_level_tmp = ['N/A','N/A','N/A','N/A']
-  else:
-    moisture_level_tmp = moisture_level
-
-  return {'watering_mode' : str(watering), 'moisture_threshold' : moisture_threshold, 'moisture_level' : moisture_level_tmp, 'watering_schedule' : watering_schedule }
-
-server = SimpleXMLRPCServer((XMLRPC_LISTEN_IP, XMLRPC_PORT))
-server.register_function(set_watering_mode, "set_watering_mode")
-server.register_function(set_moisture_threshold, "set_moisture_threshold")
-server.register_function(set_watering_schedule, "set_watering_schedule")
-server.register_function(get_mode, "get_mode")
-server_thread = threading.Thread(target=server.serve_forever)
-server_thread.setDaemon(True)
-server_thread.start()
-
-def signal_handler(signal, frame):
-        print 'You pressed Ctrl+C!'
-        sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
-#print 'Press Ctrl+C to exit'
-
-def send_graphite(measurements):
-  message = ''
-  now = int(time.time())
-  for key, value in measurements.iteritems():
-    message += '%s.%s %s %i\n' % (GRAPHITE_PREFIX,key,value,now)
-  #logging.debug(message)
-
-  sock = socket.socket()
-  try:
-    sock.connect((CARBON_SERVER, CARBON_PORT))
-    sock.sendall(message)
-    #logging.debug('Moisture level sent to Graphite successfully')
-  except socket.error as msg:
-    logging.error("Failed to send to Graphite: %s" % msg)
-  sock.close()
-
-def read_rpi_cpu_temp():
-  raw_output = subprocess.check_output(['/opt/vc/bin/vcgencmd', 'measure_temp']).strip()
-  temp_str = re.sub(r'.*temp=([0-9.]+).*', r'\1', raw_output)
-  logging.debug('Rpi CPU : temperature = %.1f' % float(temp_str))
-  return float(temp_str)
+        return battery_levels
 
 
-def read_dht_sensor():
-  humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302, PIN_DHT_SENSOR)
-  if humidity and temperature:
-    logging.debug('DHT sensor : humidity = %.1f , temperature = %.1f' % (humidity, temperature))
-    return ('%.1f' % float(humidity),'%.1f' % float(temperature))
-  else:
-    logging.warn('Could not read from DHT sensor')
-    return False,False
 
-def read_moisture_sensor():
-  moisture = []
-  for pin in PIN_MOISTURE_SWITCH:
-    GPIO.output(pin, True)
-  
-  time.sleep(1)
-  
-  for i, pin in enumerate(PIN_MOISTURE_SENSOR):
-    volts = adc.readADCSingleEnded(pin, gain, sps) #/ 1000
-    moisture.append(int(volts))
-  logging.debug('Moisture sensors ' + str(moisture))
-  
-  for pin in PIN_MOISTURE_SWITCH:
-    GPIO.output(pin, False)
-  
-  return moisture
+class Sprinkler:
+    def __init__(self, name, sprinkler_pump_pin) -> None:
+        self.name = name
+        self.sprinkler_pump_pin = sprinkler_pump_pin
+        self.last_watering = datetime.now()
 
-def water_plant(i):
-  pin = PIN_PUMP_RELAY[i]
-  logging.info("Turning on pump %i for %i sec (%s), %i < %i" % (i,WATERING_DURATION,watering,moisture_level[i],moisture_threshold))
-  if watering:
-    last_watering[i] = now
-    GPIO.output(pin, False)
-    time.sleep(WATERING_DURATION)
-    GPIO.output(pin, True)
+    def water(self) -> None:
+        print(f'Turning on sprinkler pump {self.name} for {WATERING_DURATION_SECONDS}s')
+        self.last_watering = datetime.now()
+        if SPRINKLER_PUMP_DRYMODE:
+            print(f'Running in sprinlker dry mode')
+            return
+        GPIO.output(self.sprinkler_pump_pin, False)
+        sleep(WATERING_DURATION_SECONDS)
+        GPIO.output(self.sprinkler_pump_pin, True)
 
-def is_watering_time():
-  try:
-    global watering_schedule
-    start,end =  watering_schedule
-    start_dt = datetime.time(*map(int,start.split(':')))
-    end_dt   = datetime.time(*map(int,end.split(':')))
-    now_dt   = datetime.datetime.now().time()
 
-    if start_dt <= end_dt:
-      return start_dt <= now_dt <= end_dt
-    else:
-      return start_dt <= now_dt or now_dt <= end_dt
-  except Exception as e:
-    logging.warn('Could not check watering_schedule: %s' % e.message )
-    return False
-  
+class Pot:
+    def __init__(self, name, dryness_threshold, max_watering_frequency_seconds, sprinkler_pump_pin, sensors) -> None:
+        self.name = name
+        self.dryness_threshold = dryness_threshold
+        self.max_watering_frequency_seconds = max_watering_frequency_seconds
+        self.sprinkler_pump_pin = sprinkler_pump_pin
+        self.sensors = SoilSensorsGroup(sensors)
+        self.sprinkler = Sprinkler(name, sprinkler_pump_pin)
 
-# Initialize
-ADS1015 = 0x00  # 12-bit ADC
-gain = 2870
-sps = 128  # 128 samples per second
 
-#Adafruit_DHT.read_retry(Adafruit_DHT.AM2302, PIN_DHT_SENSOR) # 1st measurement unaccurate
+CHECK_SOIL_FREQ_SECONDS = 10
+CHECK_BATTERY_FREQ_DAYS = 1
+WATERING_SCHEDULE_TIME = {'from': time(hour=0, minute=0),'to': time(hour=2, minute=0)}
+WATERING_DURATION_SECONDS = 30
+SPRINKLER_PUMP_DRYMODE=True
 
-adc = ADS1x15(ic=ADS1015)
+POTS = [
+    Pot('balcony0', dryness_threshold=30, max_watering_frequency_seconds=30, sprinkler_pump_pin=8, 
+        sensors=[{'name': 'balcony0a', 'mac': 'C4:7C:8D:63:C5:E8'}, {'name': 'balcony0b', 'mac': 'C4:7C:8D:63:EE:17'}]), # broken
+    Pot('balcony1', dryness_threshold=30, max_watering_frequency_seconds=30, sprinkler_pump_pin=10, 
+        sensors=[{'name': 'balcony1a', 'mac': 'C4:7C:8D:63:CB:49'}, {'name': 'balcony1b', 'mac': 'C4:7C:8D:63:EE:14'}]), # working
+    Pot('balcony2', dryness_threshold=30, max_watering_frequency_seconds=30, sprinkler_pump_pin=16, 
+        sensors=[{'name': 'balcony2a', 'mac': 'C4:7C:8D:67:64:39'}, {'name': 'balcony2b', 'mac': 'C4:7C:8D:63:EE:29'}]), # working
+    Pot('balcony3', dryness_threshold=30, max_watering_frequency_seconds=30, sprinkler_pump_pin=18, 
+        sensors=[{'name': 'balcony3a', 'mac': 'C4:7C:8D:67:63:EC'}, {'name': 'balcony3b', 'mac': 'C4:7C:8D:64:18:7A'}])
+]
 
-for pin in PIN_MOISTURE_SWITCH + PIN_PUMP_RELAY:
-  GPIO.setup(pin, GPIO.OUT)
-  GPIO.output(pin, True) # Set all off
 
-# Main
-now = int(time.time())
-last_watering = [now,now,now,now]
+if not SPRINKLER_PUMP_DRYMODE:
+    # Set pins' mode
+    GPIO.setmode(GPIO.BOARD)
 
-logging.info('Watering mode: %s' % watering)
-logging.info('Moisture threshold: %i' % moisture_threshold)
-logging.info('Last watering threshold: %i' % LAST_WATERING_THRESHOLD)
-logging.info('Watering duration: %i' % WATERING_DURATION)
+    # Set all pump off as we're not sure in which state pins are at start-up
+    for pot in POTS:
+        GPIO.setup(pot.sprinkler_pump_pin, GPIO.OUT)
+        GPIO.output(pot.sprinkler_pump_pin, True) # Set all off
 
 while True:
-  moisture_level = read_moisture_sensor()
-  humidity, temperature = read_dht_sensor()
-  rpi_temperature = read_rpi_cpu_temp()
-  graphite_d = {}
+    # Only water plants during certain hours
+    if (WATERING_SCHEDULE_TIME['from'] < datetime.now().time() < WATERING_SCHEDULE_TIME['to']):
+        for pot in POTS:
+            # Check sensors' battery levels
+            if (datetime.now() - pot.sensors.last_battery_levels_checked).days > (CHECK_BATTERY_FREQ_DAYS):
+                pot.sensors.check_battery()
 
-  if humidity and temperature:
-    graphite_d.update({'temperature': temperature, 'humidity': humidity})
+            # Skip if this pot was watered recently
+            last_watering_delta_seconds = (datetime.now() - pot.sprinkler.last_watering).seconds
+            if  last_watering_delta_seconds < pot.max_watering_frequency_seconds:
+                print(f'{pot.name} was watered recently ({last_watering_delta_seconds}s ago), skipping ...')
+                continue
 
-  if rpi_temperature:
-    graphite_d.update({'rpi_temperature': rpi_temperature})
+            # Skip if this pot is still moist
+            moisture_level = pot.sensors.get_moisture()
+            if moisture_level and moisture_level > pot.dryness_threshold:
+                print(f'{pot.name} is not dry enough')
+                continue
 
-  for i, v in enumerate(moisture_level):
-    graphite_d['soil-moisture.%s' % i] = v
-  send_graphite(graphite_d)
-
-  #if time.localtime().tm_hour in range(0,24):
-  if is_watering_time():
-    for i, v in enumerate(moisture_level):
-      now = int(time.time())
-      if moisture_threshold > v:
-        if LAST_WATERING_THRESHOLD < (now - last_watering[i]):
-          water_plant(i)
-        else:
-          logging.debug("Sensor %i: %i < %i but recently watered, skipping for %i sec more" % (i,moisture_level[i],moisture_threshold,(last_watering[i] - now + LAST_WATERING_THRESHOLD )))
-  else:
-    logging.debug('Now is not in watering_schedule')
-
-  time.sleep(10)
-
+            print(f'Watering {pot.name}')
+            pot.sprinkler.water()
+        
+    print(f'Sleeping {CHECK_SOIL_FREQ_SECONDS}s ...')
+    sleep(CHECK_SOIL_FREQ_SECONDS)
