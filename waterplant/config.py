@@ -1,14 +1,32 @@
 from datetime import time
 
-CHECK_SOIL_FREQ_SECONDS = 15
-CHECK_BATTERY_FREQ_DAYS = 1
-WATERING_SCHEDULE_TIME = {'from': time(hour=00, minute=00),'to': time(hour=23, minute=59)}
-WATERING_DURATION_SECONDS = 30
-SPRINKLER_PUMP_DRYMODE = False
-
-POTS = [
-    {'name': 'balcony0', 'dryness_threshold': 30, 'max_watering_frequency_seconds': 300, 'sprinkler_pump_pin': 8, 'sensors': [{'name': 'balcony0a', 'mac': 'C4:7C:8D:63:C5:E8'}, {'name': 'balcony0b', 'mac': 'C4:7C:8D:63:EE:17'}]},
-    {'name': 'balcony1', 'dryness_threshold': 30, 'max_watering_frequency_seconds': 300, 'sprinkler_pump_pin': 10, 'sensors': [{'name': 'balcony1a', 'mac': 'C4:7C:8D:63:CB:49'}, {'name': 'balcony1b', 'mac': 'C4:7C:8D:63:EE:14'}]},
-    {'name': 'balcony2', 'dryness_threshold': 30, 'max_watering_frequency_seconds': 300, 'sprinkler_pump_pin': 16, 'sensors': [{'name': 'balcony2a', 'mac': 'C4:7C:8D:67:64:39'}, {'name': 'balcony2b', 'mac': 'C4:7C:8D:63:EE:29'}]},
-    {'name': 'balcony3', 'dryness_threshold': 30, 'max_watering_frequency_seconds': 300, 'sprinkler_pump_pin': 18, 'sensors': [{'name': 'balcony3a', 'mac': 'C4:7C:8D:67:63:EC'}, {'name': 'balcony3b', 'mac': 'C4:7C:8D:64:18:7A'}]},
-]
+import confuse
+source = confuse.YamlSource('config.yaml')
+unvalidated_config = confuse.RootView([source])
+template = {
+    'api_listening_ip': str,
+    'check_for_watering_freq_seconds': 3,
+    'check_battery_freq_days': 1,
+    'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
+    'watering_schedule_time': {
+        'from_hour': confuse.String(pattern='[0-9]{2}:[0-9]{2}'),
+        'to_hour': confuse.String(pattern='[0-9]{2}:[0-9]{2}'),
+    },
+    'watering_duration_seconds': 30,
+    'sprinkler_pump_drymode': bool,
+    'homeassistant': {
+        'api_base_url': str,
+        'long_live_token': str,
+    },
+    'pots': confuse.Sequence({
+        'name': str,
+        'dryness_threshold': 30,
+        'max_watering_frequency_seconds': 300,
+        'sprinkler_pump_pin': 8,
+        'sensors': confuse.Sequence({
+            'name': str,
+            'mac': confuse.String(pattern='[0-9a-fA-F:]{17}')
+        }),
+    }),
+}
+config = unvalidated_config.get(template)

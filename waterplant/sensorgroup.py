@@ -3,15 +3,23 @@ import statistics
 
 from btlewrap.bluepy import BluepyBackend
 from btlewrap.base import BluetoothBackendException
-
 from miflora.miflora_poller import (MI_BATTERY, MI_CONDUCTIVITY, MI_LIGHT, MI_MOISTURE, MI_TEMPERATURE, MiFloraPoller)
 
+from waterplant.config import config
+
+#TODO: Create a Sensor class used by SensorsGroup
 class SensorsGroup:
     def __init__(self, sensors) -> None:
         self.sensor_pollers = {}
-        self.last_battery_levels_checked = datetime.now() - timedelta(days=2)
+        self.last_battery_levels_checked = datetime.now()
+        # Alternatively, for debugging, first battery check to not wait for config.check_battery_freq_days 
+        # self.last_battery_levels_checked = datetime.now() - timedelta(days=config.check_battery_freq_days)
         for sensor in sensors:
-            self.sensor_pollers[sensor['name']] = MiFloraPoller(sensor['mac'], BluepyBackend)
+            self.sensor_pollers[sensor['name']] = MiFloraPoller(sensor['mac'], BluepyBackend, cache_timeout=config.miflora_cache_timeout)
+
+    def __repr__(self) -> str:
+        return f'sensor group'
+#        return f'{self.get_moisture()}'
 
     def get_moisture(self) -> int:
         moisture_measurements = []
