@@ -7,6 +7,7 @@ template = {
     'api_listening_ip': str,
     'check_for_watering_freq_seconds': 3,
     'check_battery_freq_days': 1,
+    'logfile': '/tmp/waterplant.log',
     'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
     'watering_schedule_time': {
         'from_hour': confuse.String(pattern='[0-9]{2}:[0-9]{2}'),

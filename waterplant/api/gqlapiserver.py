@@ -1,4 +1,5 @@
 import typing
+import logging
 
 import strawberry
 from flask import Flask
@@ -18,14 +19,14 @@ class gql_api_server:
         @strawberry.type
         class Query:
             pots_str: str = f"{pots}"
-            pots_pot: typing.List[Pot] = strawberry.field(resolver=get_pots)
+            #pots_pot: typing.List[Pot] = strawberry.field(resolver=get_pots)
 
         @strawberry.type
         class Mutation:
             @strawberry.mutation
             def sprinkler_force_watering(self, name: str) -> str:
                 pots_names = [d.name for d in pots]
-                print(pots_names)
+                logging.info(pots_names)
                 if(pot := next((x for x in pots if x.name == name), None)):
                     pot.sprinkler.set_force_next_watering(True)
                     return f'Forcing next watering sprinkler for {name}'

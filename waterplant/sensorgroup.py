@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import statistics
+import logging
 
 from btlewrap.bluepy import BluepyBackend
 from btlewrap.base import BluetoothBackendException
@@ -27,13 +28,13 @@ class SensorsGroup:
         for sensor_name, sensor_poller in self.sensor_pollers.items():
             try:
                 measurment = sensor_poller.parameter_value(MI_MOISTURE)
-                print(f'{sensor_name} moisture measurement: {measurment}')
+                logging.info(f'{sensor_name} moisture measurement: {measurment}')
                 moisture_measurements.append(measurment)
             except BluetoothBackendException:
-                print(f'Failed to read from {sensor_name}')
+                logging.warn(f'Failed to read from {sensor_name}')
 
         measurements_avg = statistics.mean(moisture_measurements)
-        print(f'Aggregate moisture measurements: {measurements_avg}')
+        logging.info(f'Aggregate moisture measurements: {measurements_avg}')
 
         return measurements_avg
 
@@ -42,10 +43,10 @@ class SensorsGroup:
         for sensor_name, sensor_poller in self.sensor_pollers.items():
             try:
                 measurment = sensor_poller.parameter_value(MI_BATTERY)
-                print(f'{sensor_name} battery measurement: {measurment}')
+                logging.info(f'{sensor_name} battery measurement: {measurment}')
                 battery_levels[sensor_name] = measurment
                 self.last_battery_levels_checked = datetime.now()
             except BluetoothBackendException:
-                print(f'Failed to read from {sensor_name}')
+                logging.warn(f'Failed to read from {sensor_name}')
 
         return battery_levels
