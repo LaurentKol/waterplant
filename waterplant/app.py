@@ -26,7 +26,10 @@ class Waterplant:
                 if pot.sprinkler.force_next_watering:
                     logging.info(f'Force watering {pot.name}')
                     pot.sprinkler.water()
-            
+                # Turn OFF Sprinkler if ON outside of water() method. This shouldn't be necessary
+                pot.sprinkler.enforce_off()
+
+
             # TODO: Move this in a helper.py or make it more readable
             schedule_time_from = config.watering_schedule_time.from_hour.split(':')
             schedule_time_to = config.watering_schedule_time.to_hour.split(':')
@@ -34,9 +37,6 @@ class Waterplant:
             # If within watering schedule ...
             if (time(hour=int(schedule_time_from[0]), minute=int(schedule_time_from[1])) < datetime.now().time() < time(hour=int(schedule_time_to[0]), minute=int(schedule_time_to[1]))):
                 for pot in pots:
-                    # Turn off Sprinkler if on outside of water() method. This shouldn't be necessary
-                    pot.sprinkler.enforce_off()
-
                     # Check sensors' battery levels
                     if config.check_battery_freq_days != 0 and (datetime.now() - pot.sensors.last_battery_levels_checked).days > (config.check_battery_freq_days):
                         pot.sensors.check_battery()
