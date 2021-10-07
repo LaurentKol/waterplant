@@ -33,8 +33,11 @@ class SensorsGroup:
             except BluetoothBackendException:
                 logging.warn(f'Failed to read from {sensor_name}')
 
-        measurements_avg = statistics.mean(moisture_measurements)
-        logging.info(f'Aggregate moisture measurements: {measurements_avg}')
+        if moisture_measurements:
+            measurements_avg = statistics.mean(moisture_measurements)
+            logging.info(f'Aggregate moisture measurements: {measurements_avg}')
+        else:
+            measurements_avg = None
 
         return measurements_avg
 
