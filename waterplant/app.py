@@ -52,6 +52,9 @@ class Waterplant:
                     if moisture_level and moisture_level > pot.dryness_threshold:
                         logging.debug(f'{pot.name} is not dry enough ({moisture_level}% moist > {pot.dryness_threshold}% moist threshold)')
                         continue
+                    elif not moisture_level:
+                        logging.warn(f'Could not get moisture measurement for {pot.name}, skipping ...')
+                        continue
 
                     logging.info(f'Watering {pot.name} ({moisture_level}% moist =< {pot.dryness_threshold}% moist threshold)')
                     pot.sprinkler.water()
