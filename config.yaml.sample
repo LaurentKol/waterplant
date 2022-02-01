@@ -1,5 +1,6 @@
 # Host/IP to listen on for the GraphQL API
-api_listening_ip: 0.0.0.0 
+# No SSL nor authentification support so strongly recommended to use localhost.
+api_listening_ip: localhost 
 
 # Watering config
 check_for_watering_freq_seconds: 10
