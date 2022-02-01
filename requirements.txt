@@ -4,3 +4,4 @@ miflora==0.7.1
 RPi.GPIO==0.7.0
 Flask==2.0.1
 strawberry-graphql==0.75.1
+confuse==1.7.0
