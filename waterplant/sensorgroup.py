@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import statistics
 import logging
+from typing import List, Dict
 
 from btlewrap.bluepy import BluepyBackend
 from btlewrap.base import BluetoothBackendException
@@ -10,7 +11,7 @@ from waterplant.config import config
 
 #TODO: Create a Sensor class used by SensorsGroup
 class SensorsGroup:
-    def __init__(self, sensors) -> None:
+    def __init__(self, sensors: List[Dict]) -> None:
         self.sensor_pollers = {}
         self.last_battery_levels_checked = datetime.now()
         # Alternatively, for debugging, first battery check to not wait for config.check_battery_freq_days 

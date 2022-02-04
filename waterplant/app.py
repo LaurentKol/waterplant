@@ -1,6 +1,7 @@
 from datetime import time, datetime, timedelta
 from time import sleep
 import logging
+from typing import List
 
 from RPi import GPIO
 
@@ -10,7 +11,7 @@ from waterplant.pot import Pot
 class Waterplant:
 
     # @staticmethod
-    def run(pots):
+    def run(pots: List[Pot]):
         
         # Set pins' mode
         GPIO.setmode(GPIO.BOARD)

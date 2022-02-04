@@ -7,7 +7,7 @@ from RPi import GPIO
 from waterplant.config import config
 
 class Sprinkler:
-    def __init__(self, name, sprinkler_pump_pin) -> None:
+    def __init__(self, name: str, sprinkler_pump_pin: int) -> None:
         self.name = name
         self.sprinkler_pump_pin = sprinkler_pump_pin
         self.last_watering = datetime.now()
@@ -21,7 +21,7 @@ class Sprinkler:
             logging.warn(f'Sprinkler {self.name} was found turned on outside of water() method!!! Turning it off.')
             GPIO.output(self.sprinkler_pump_pin, True)
 
-    def set_force_next_watering(self, force) -> None:
+    def set_force_next_watering(self, force: bool) -> None:
         self.force_next_watering = force
 
     def water(self) -> None:
