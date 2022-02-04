@@ -1,15 +1,17 @@
-import typing
 import logging
+from typing import List
 
 import strawberry
 from flask import Flask
 from strawberry.file_uploads import Upload
 from strawberry.flask.views import GraphQLView as BaseGraphQLView
 
-class gql_api_server:
-    def create_gql_api_server(pots):
+from waterplant.pot import Pot
 
-        def get_pots():
+class gql_api_server:
+    def create_gql_api_server(pots: List[Pot]) -> Flask:
+
+        def get_pots() -> List[Pot]:
             return pots
         # @strawberry.input
         # class FolderInput:
@@ -36,7 +38,7 @@ class gql_api_server:
         schema = strawberry.Schema(query=Query, mutation=Mutation)
 
         class GraphQLView(BaseGraphQLView):
-            def get_root_value(self):
+            def get_root_value(self) -> Query:
                 return Query()
 
 
