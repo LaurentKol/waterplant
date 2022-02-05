@@ -47,6 +47,11 @@ python -m waterplant
 
 4. Set each pump's relay's GPIO (aka "BCM" or "Broadcom") to low at Raspberry's boot time by adding below code to `/boot/firmware/usercfg.txt`
 ```
+gpio=<GPIO-of-pump-1>=op,dh
+...
+```
+Or if your Raspberry Pi's firemware has an older build date than 21/03/2018
+```
 dtoverlay=gpio-poweroff,gpiopin=<GPIO-of-pump-1>,active_low
 ...
 ```
