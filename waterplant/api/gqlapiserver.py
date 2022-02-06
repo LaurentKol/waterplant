@@ -8,8 +8,14 @@ from strawberry.flask.views import GraphQLView as BaseGraphQLView
 
 from waterplant.pot import Pot
 
-class gql_api_server:
+class GqlApiServer:
     def create_gql_api_server(pots: List[Pot]) -> Flask:
+
+        @strawberry.type
+        class Pot:
+            name: str
+            dryness_threshold: int
+            max_watering_frequency_seconds: int
 
         def get_pots() -> List[Pot]:
             return pots
@@ -20,18 +26,16 @@ class gql_api_server:
         #TODO: clean-up this test
         @strawberry.type
         class Query:
-            pots_str: str = f"{pots}"
-            #pots_pot: typing.List[Pot] = strawberry.field(resolver=get_pots)
+            pots: List[Pot] = strawberry.field(resolver=get_pots)
 
         @strawberry.type
         class Mutation:
             @strawberry.mutation
             def sprinkler_force_watering(self, name: str) -> str:
-                pots_names = [d.name for d in pots]
-                logging.info(pots_names)
-                if(pot := next((x for x in pots if x.name == name), None)):
+                if(pot := next((p for p in pots if p.name == name), None)):
                     pot.sprinkler.set_force_next_watering(True)
-                    return f'Forcing next watering sprinkler for {name}'
+                    logging.info(f'[GQL] Got force watering {name}')
+                    return name
                 else:
                     return f'Unknown pot {name}'
 
@@ -45,6 +49,7 @@ class gql_api_server:
         gql_api_server = Flask(__name__)
         gql_api_server.use_reloader=False
         gql_api_server.debug = False
+        gql_api_server.config['ENV'] = 'development'
 
         gql_api_server.add_url_rule(
             "/graphql",

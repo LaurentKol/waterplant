@@ -59,8 +59,6 @@ class Waterplant:
 
                     logging.info(f'Watering {pot.name} ({moisture_level}% moist =< {pot.dryness_threshold}% moist threshold)')
                     pot.sprinkler.water()
-                # print(f'Sleeping {config.check_soil_freq_seconds}s ...')
-                # sleep(config.check_soil_freq_seconds)
 
             logging.debug(f'Sleeping {config.check_for_watering_freq_seconds}s ...')
             sleep(config.check_for_watering_freq_seconds)
