@@ -7,9 +7,9 @@ from RPi import GPIO
 from waterplant.config import config
 
 class Sprinkler:
-    def __init__(self, name: str, sprinkler_pump_pin: int) -> None:
+    def __init__(self, name: str, sprinkler_pin: int) -> None:
         self.name = name
-        self.sprinkler_pump_pin = sprinkler_pump_pin
+        self.sprinkler_pin = sprinkler_pin
         self.last_watering = datetime.now()
         self.force_next_watering = False
 
@@ -17,9 +17,9 @@ class Sprinkler:
         return f'{self.last_watering}'
 
     def enforce_off(self) -> None:
-        if GPIO.input(self.sprinkler_pump_pin) != 1:
+        if GPIO.input(self.sprinkler_pin) != 1:
             logging.warn(f'Sprinkler {self.name} was found turned on outside of water() method!!! Turning it off.')
-            GPIO.output(self.sprinkler_pump_pin, True)
+            GPIO.output(self.sprinkler_pin, True)
 
     def set_force_next_watering(self, force: bool) -> None:
         self.force_next_watering = force
@@ -30,9 +30,9 @@ class Sprinkler:
         self.last_watering = datetime.now()
         self.set_force_next_watering(False)
         if not config.sprinkler_pump_drymode:
-            GPIO.output(self.sprinkler_pump_pin, False)
+            GPIO.output(self.sprinkler_pin, False)
             logging.info(f'Turned on sprinkler {self.name}')
             sleep(config.watering_duration_seconds)
-            logging.debug(f'Sprinkler {self.name} is: {GPIO.input(self.sprinkler_pump_pin)}')
-            GPIO.output(self.sprinkler_pump_pin, True)
+            logging.debug(f'Sprinkler {self.name} is: {GPIO.input(self.sprinkler_pin)}')
+            GPIO.output(self.sprinkler_pin, True)
             logging.info(f'Turned off sprinkler {self.name}')

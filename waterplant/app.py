@@ -18,8 +18,8 @@ class Waterplant:
 
         # Set all pump off as we're not sure in which state pins are at start-up
         for pot in pots:
-            GPIO.setup(pot.sprinkler.sprinkler_pump_pin, GPIO.OUT)
-            GPIO.output(pot.sprinkler.sprinkler_pump_pin, True) # Set all off
+            GPIO.setup(pot.sprinkler.sprinkler_pin, GPIO.OUT)
+            GPIO.output(pot.sprinkler.sprinkler_pin, True) # Set all off
 
         while True:
             # Water now if force_next_watering was set (via API)
@@ -44,7 +44,7 @@ class Waterplant:
 
                     # Skip this pot if watered recently
                     last_watering_delta_seconds = (datetime.now() - pot.sprinkler.last_watering).seconds
-                    if  last_watering_delta_seconds < pot.max_watering_frequency_seconds:
+                    if  last_watering_delta_seconds < pot.max_watering_freq:
                         logging.debug(f'{pot.name} was watered recently ({last_watering_delta_seconds}s ago), skipping ...')
                         continue
 

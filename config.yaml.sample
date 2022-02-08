@@ -18,16 +18,20 @@ check_battery_freq_days: 0 # Zero means disable battery check
 # If multiple sensors, average moisture measurement is used.
 pots:
  - name: plant0
-   sprinkler_pump_pin: 1
+   sprinkler_pin: 1
    sensors:
-     - name: plant0a
+     - type: Miflora
+       name: plant0a
        mac: AA:BB:CC:DD:EE:00
-     - name: plant0b
+     - type: Miflora
+       name: plant0b
        mac: AA:BB:CC:DD:EE:01
   - name: plant1
-    sprinkler_pump_pin: 2
+    sprinkler_pin: 2
     sensors:
-     - name: plant1a
+     - type: Miflora
+       name: plant1a
        mac: AA:BB:CC:DD:EE:02
-     - name: plant1b
+     - type: Miflora
+       name: plant1b
        mac: AA:BB:CC:DD:EE:03

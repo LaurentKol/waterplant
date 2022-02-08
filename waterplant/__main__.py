@@ -19,8 +19,8 @@ if __name__ == '__main__':
 
     pots = []
     for pot in config.pots:
-        # TODO: change to **kwargs
-        pots.append(Pot(pot['name'], pot['dryness_threshold'], pot['max_watering_frequency_seconds'], pot['sprinkler_pump_pin'], pot['sensors']))
+        # See config.py for list of possible attributes of pot. 
+        pots.append(Pot(**pot))
 
     threading.Thread(target=Waterplant.run, kwargs={'pots':pots}, daemon=True).start()
     logging.debug('Waterplant app started')
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # Wrapping API Server in a method because target needs a callable, if not wrapped it's not called 
     def gql_api_server():
         GqlApiServer.create_gql_api_server(pots=pots).run(host=config.api_listening_ip)
-
+    
     threading.Thread(target=gql_api_server, daemon=True).start()
     logging.debug('GraphQL API server started')
 

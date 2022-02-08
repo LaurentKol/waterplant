@@ -1,3 +1,4 @@
+from sys import exit
 from datetime import time
 
 import confuse
@@ -22,12 +23,20 @@ template = {
     'pots': confuse.Sequence({
         'name': str,
         'dryness_threshold': 30,
-        'max_watering_frequency_seconds': 300,
-        'sprinkler_pump_pin': 8,
+        'max_watering_freq': 300,
+        'sprinkler_pin': 8,
         'sensors': confuse.Sequence({
+            'type': confuse.String(default='Miflora',pattern='^(Miflora)$'),
             'name': str,
             'mac': confuse.String(pattern='[0-9a-fA-F:]{17}')
         }),
     }),
 }
-config = unvalidated_config.get(template)
+
+try:
+    config = unvalidated_config.get(template)
+except confuse.exceptions.ConfigValueError as err:
+    print(f'Config is invalid! Error is: {err}\nSee config.yaml.sample and make sure sensor.type is of an implement module/class.\nExiting ...')
+    exit(1)
+except confuse.ConfigError as err:
+    print(err)

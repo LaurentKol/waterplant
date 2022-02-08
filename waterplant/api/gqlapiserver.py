@@ -15,7 +15,7 @@ class GqlApiServer:
         class Pot:
             name: str
             dryness_threshold: int
-            max_watering_frequency_seconds: int
+            max_watering_freq: int
 
         def get_pots() -> List[Pot]:
             return pots
