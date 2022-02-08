@@ -26,9 +26,9 @@ template = {
         'max_watering_freq': 300,
         'sprinkler_pin': 8,
         'sensors': confuse.Sequence({
-            'type': confuse.String(default='Miflora',pattern='^(Miflora)$'),
+            'type': confuse.String(default='Miflora',pattern='^(Miflora|Dummy)$'), # TODO: Generate pattern from scanning existing waterplant.sensor.*
             'name': str,
-            'mac': confuse.String(pattern='[0-9a-fA-F:]{17}')
+            'mac': confuse.Optional(confuse.String(pattern='[0-9a-fA-F:]{17}')) # TODO: Make mac required if type is Miflora
         }),
     }),
 }

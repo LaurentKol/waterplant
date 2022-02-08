@@ -21,17 +21,15 @@ pots:
    sprinkler_pin: 1
    sensors:
      - type: Miflora
-       name: plant0a
+       name: plant1a
        mac: AA:BB:CC:DD:EE:00
      - type: Miflora
-       name: plant0b
+       name: plant1b
        mac: AA:BB:CC:DD:EE:01
   - name: plant1
     sprinkler_pin: 2
     sensors:
-     - type: Miflora
-       name: plant1a
-       mac: AA:BB:CC:DD:EE:02
-     - type: Miflora
-       name: plant1b
-       mac: AA:BB:CC:DD:EE:03
+     - type: Dummy
+       name: plant2a
+     - type: Dummy
+       name: plant2b
