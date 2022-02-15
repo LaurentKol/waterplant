@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import logging
 
@@ -10,7 +10,7 @@ class Sprinkler:
     def __init__(self, name: str, sprinkler_pin: int) -> None:
         self.name = name
         self.sprinkler_pin = sprinkler_pin
-        self.last_watering = datetime.now()
+        self.last_watering = datetime.now() - timedelta(minutes=5) # TODO: Instead of 5min default, use max_watering_freq from pot's config.
         self.force_next_watering = False
 
     def __repr__(self) -> str:
