@@ -73,5 +73,5 @@ At this point there's no proper Home-assistant integration however if you want t
   - platform: command_line
     switches:
       waterplant_pump0:
-        command_on: 'curl -s "http://localhost:5000/graphql" --header "Content-Type: application/json" --data-raw $''{"query":"mutation sprinkler_force_watering($name:String\u0021) { sprinklerForceWatering(name:$name) } ","variables":{"name":"plant0"},"operationName":"sprinkler_force_watering"}'' '
+        command_on: 'curl -s "http://localhost:5000/graphql" --header "Content-Type: application/json" --data-raw ''{"query":"mutation { sprinklerForceWatering(name: \"plant0\") } ","variables":null}'' '
 ```
