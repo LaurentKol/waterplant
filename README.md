@@ -75,3 +75,9 @@ At this point there's no proper Home-assistant integration however if you want t
       waterplant_pump0:
         command_on: 'curl -s "http://localhost:5000/graphql" --header "Content-Type: application/json" --data-raw ''{"query":"mutation { sprinklerForceWatering(name: \"plant0\") } ","variables":null}'' '
 ```
+
+## Hardware implementations
+Below is an example using water pumps (gear type), you might want to consider other type such as diaphragm or peristaltic.
+Another option is solenoid valves if the water tank is higher than plants.
+
+<img src="https://user-images.githubusercontent.com/1433441/154086613-4d0c0b30-3cb3-4bf3-b253-e1a180f64b24.jpg" alt="controller_container" width="400"><img src="https://user-images.githubusercontent.com/1433441/154086615-92416eda-e68d-4b64-96f6-baf72fc5d56c.jpg" alt="pump_container" width="400"><img src="https://user-images.githubusercontent.com/1433441/154086588-f05cbe41-28c5-4c7f-a05c-6f886a0518a0.jpg" alt="container_inside_view" width="400"><img src="https://user-images.githubusercontent.com/1433441/154086604-de3a5d11-6cd0-4b95-9b91-762ecb862af9.jpg" alt="container_outside_view" width="400">
