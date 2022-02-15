@@ -51,7 +51,7 @@ class Waterplant:
                     # Skip if this pot is still moist
                     moisture_level = pot.sensors.get_moisture()
                     if moisture_level and moisture_level > pot.dryness_threshold:
-                        logging.debug(f'{pot.name} is not dry enough ({moisture_level}% moist > {pot.dryness_threshold}% moist threshold)')
+                        logging.info(f'{pot.name} is not dry enough ({moisture_level}% moist > {pot.dryness_threshold}% moist threshold)')
                         continue
                     elif not moisture_level:
                         logging.warn(f'Could not get moisture measurement for {pot.name}, skipping ...')
