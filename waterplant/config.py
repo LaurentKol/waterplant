@@ -18,8 +18,8 @@ template = {
     'watering_duration_seconds': 30,
     'sprinkler_pump_drymode': bool,
     'homeassistant': {
-        'api_base_url': str,
-        'long_live_token': str,
+        'api_base_url': confuse.Optional(confuse.String(default=None)),
+        'long_live_token': confuse.Optional(confuse.String(default=None)),
     },
     'pots': confuse.Sequence({
         'name': str,

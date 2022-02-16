@@ -5,6 +5,7 @@ import logging
 from RPi import GPIO
 
 from waterplant.config import config
+from waterplant.homeassistant.harestapiclient import set_ha_state
 
 class Sprinkler:
     def __init__(self, name: str, sprinkler_pin: int) -> None:
@@ -24,6 +25,7 @@ class Sprinkler:
     def set_force_next_watering(self, force: bool) -> None:
         self.force_next_watering = force
 
+    @set_ha_state
     def water(self) -> None:
         drymode_msg = '(dry-mode on, simulating)' if config.sprinkler_pump_drymode else ''
         logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s {drymode_msg}')

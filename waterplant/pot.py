@@ -9,7 +9,7 @@ class Pot:
         self.name = name
         self.dryness_threshold = dryness_threshold
         self.max_watering_freq = max_watering_freq
-        self.sensors = SensorsGroup(sensors)
+        self.sensors = SensorsGroup(name, sensors)
         self.sprinkler = Sprinkler(name, sprinkler_pin)
 
     def __repr__(self) -> str:

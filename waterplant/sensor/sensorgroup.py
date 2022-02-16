@@ -7,7 +7,8 @@ from waterplant.config import config
 from .basesensor import BaseSensor
 
 class SensorsGroup:
-    def __init__(self, sensors: List[BaseSensor]) -> None:
+    def __init__(self, name: str, sensors: List[BaseSensor]) -> None:
+        self.name = name
         self.sensors = []
         for sensor in sensors:
             # Load the class named ${type}Sensor, if type is Miflora then MifloraSensor from miflorasensor.py

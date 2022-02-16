@@ -14,6 +14,13 @@ watering_schedule_time:
 miflora_cache_timeout: 600 # Default from MiFlora module. Reducing cache duration increase sensor's battery usage.
 check_battery_freq_days: 0 # Zero means disable battery check
 
+# If set, update states of switch.waterplant_<pot-name> when watering
+# Main purpose is for annotating graphs with watering events
+homeassistant:
+  api_base_url: https://<home-assistant-fqdn>:8123/api
+  long_live_token: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+
 # Each pot has a single sprinkler and one or more MiFlora sensors. 
 # If multiple sensors, average moisture measurement is used.
 pots:
