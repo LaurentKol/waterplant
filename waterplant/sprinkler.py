@@ -5,7 +5,7 @@ import logging
 from RPi import GPIO
 
 from waterplant.config import config
-from waterplant.homeassistant.harestapiclient import set_ha_state
+from waterplant.homeassistant.apiclient import set_ha_state
 
 class Sprinkler:
     def __init__(self, name: str, sprinkler_pin: int) -> None:
