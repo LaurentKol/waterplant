@@ -5,7 +5,7 @@ import logging
 from RPi import GPIO
 
 from waterplant.config import config
-from waterplant.homeassistant.apiclient import set_ha_state
+from waterplant.homeassistant.sethastate import set_ha_state
 
 class Sprinkler:
     def __init__(self, name: str, sprinkler_pin: int) -> None:
@@ -27,14 +27,19 @@ class Sprinkler:
 
     @set_ha_state
     def water(self) -> None:
-        drymode_msg = '(dry-mode on, simulating)' if config.sprinkler_pump_drymode else ''
-        logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s {drymode_msg}')
+        drymode_msg = ' (dry-mode on, simulating)' if config.sprinkler_pump_drymode else ''
+
+        logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s{drymode_msg}')
         self.last_watering = datetime.now()
         self.set_force_next_watering(False)
+
         if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, False)
-            logging.info(f'Turned on sprinkler {self.name}')
-            sleep(config.watering_duration_seconds)
-            logging.debug(f'Sprinkler {self.name} is: {GPIO.input(self.sprinkler_pin)}')
+        logging.info(f'Turned on sprinkler {self.name}{drymode_msg}')
+
+        sleep(config.watering_duration_seconds)
+        logging.debug(f'Sprinkler {self.name} is: {GPIO.input(self.sprinkler_pin)}')
+
+        if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, True)
-            logging.info(f'Turned off sprinkler {self.name}')
+        logging.info(f'Turned off sprinkler {self.name}{drymode_msg}')

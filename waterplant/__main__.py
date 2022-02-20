@@ -13,7 +13,12 @@ from waterplant.config import config
 
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.logfile,format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y/%m/%d %H:%M:%S %Z', level=logging.getLevelName(config.loglevel))
+    logging.basicConfig(
+        filename=config.logfile,format='%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y/%m/%d %H:%M:%S %Z',
+        level=logging.getLevelName(config.loglevel),
+        force=True
+    )
     logging.info('Waterplant app starting')
     logging.debug(f'Config is {config}')
 
