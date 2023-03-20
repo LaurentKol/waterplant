@@ -1,10 +1,10 @@
+from datetime import datetime
 import logging
 from typing import List
 
 import strawberry
 from flask import Flask
-from strawberry.file_uploads import Upload
-from strawberry.flask.views import GraphQLView as BaseGraphQLView
+from strawberry.flask.views import GraphQLView
 
 from waterplant.pot import Pot
 
@@ -16,17 +16,19 @@ class GqlApiServer:
             name: str
             dryness_threshold: int
             max_watering_freq: int
+            sprinkler_last_watering: datetime
+            sprinkler_watering_now: bool
 
-        def get_pots() -> List[Pot]:
-            return pots
-        # @strawberry.input
-        # class FolderInput:
-        #     files: typing.List[Upload]
 
-        #TODO: clean-up this test
         @strawberry.type
         class Query:
-            pots: List[Pot] = strawberry.field(resolver=get_pots)
+            @strawberry.field
+            def pot(self, info: strawberry.types.Info, name: str) -> Pot:
+                pot = [pot for pot in pots if pot.name == name].pop()
+                pot.sprinkler_last_watering = pot.sprinkler.last_watering
+                pot.sprinkler_watering_now = pot.sprinkler.force_next_watering
+                return pot
+
 
         @strawberry.type
         class Mutation:
@@ -41,10 +43,8 @@ class GqlApiServer:
 
         schema = strawberry.Schema(query=Query, mutation=Mutation)
 
-        class GraphQLView(BaseGraphQLView):
-            def get_root_value(self) -> Query:
-                return Query()
-
+        class MyGraphQLView(GraphQLView):
+            pass
 
         gql_api_server = Flask(__name__)
         gql_api_server.use_reloader=False

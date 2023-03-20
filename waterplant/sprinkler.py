@@ -31,7 +31,6 @@ class Sprinkler:
 
         logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s{drymode_msg}')
         self.last_watering = datetime.now()
-        self.set_force_next_watering(False)
 
         if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, False)
@@ -43,3 +42,5 @@ class Sprinkler:
         if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, True)
         logging.info(f'Turned off sprinkler {self.name}{drymode_msg}')
+
+        self.set_force_next_watering(False)
