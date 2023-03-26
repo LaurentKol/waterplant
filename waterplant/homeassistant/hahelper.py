@@ -10,13 +10,19 @@ from waterplant.config import config
 
 ha_client = None
 last_connect_retry = datetime.now() - timedelta(seconds=config.homeassistant.connection_retry_freq)
+last_heartbeat_sent = datetime.now() - timedelta(seconds=config.homeassistant.heartbeat_freq)
+
+if config.homeassistant.api_base_url and config.homeassistant.long_live_token:
+    ha_integration_activated = True
+else:
+    ha_integration_activated = False
 
 def connect() -> bool:
     global ha_client
     try:
         # TODO: Make timeout customizable from config, https://docs.python-requests.org/en/master/user/advanced/#timeouts , also sometime urllib3 timeout (300s) is not overriden
         ha_client = Client(api_url=config.homeassistant.api_base_url, token=config.homeassistant.long_live_token, global_request_kwargs={'timeout': (6.1, 27)})
-        logging.info(f'Connect successfully to Home-assistant')
+        logging.info(f'Successfully connected to Home-assistant')
         return True
     except (RequestException, HomeassistantAPIError) as e:
         # TODO: Consider try client periodically if HA unreachable at start-up
@@ -34,10 +40,20 @@ def is_connected() -> bool:
 def ensure_connected() -> None:
     global last_connect_retry
     now = datetime.now()
-    if config.homeassistant.api_base_url and config.homeassistant.long_live_token \
-        and not is_connected() and (now - last_connect_retry).total_seconds() > config.homeassistant.connection_retry_freq:
+    if ha_integration_activated and not is_connected() and (now - last_connect_retry).total_seconds() > config.homeassistant.connection_retry_freq:
         last_connect_retry = datetime.now()
         connect()
+
+def set_state(entity_id, friendly_name, state) -> None:
+    if is_connected():
+        Thread(target=ha_client.set_state, kwargs={'entity_id':entity_id, 'state':state, 'attributes':{'friendly_name':friendly_name}}).start()
+
+def ensure_heartbeat() -> None:
+    global last_heartbeat_sent
+    now = datetime.now()
+    if ha_integration_activated and is_connected() and (now - last_heartbeat_sent).total_seconds() > config.homeassistant.heartbeat_freq:
+        last_heartbeat_sent = datetime.now()
+        set_state('binary_sensor.waterplant_heartbeat','waterplant-heartbeat','RUNNING')
 
 def set_switch_on_off_state(func):
     @functools.wraps(func)

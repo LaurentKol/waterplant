@@ -24,6 +24,7 @@ class Waterplant:
 
         while True:
             hahelper.ensure_connected()
+            hahelper.ensure_heartbeat()
 
             # Water now if force_next_watering was set (via API)
             for pot in pots:

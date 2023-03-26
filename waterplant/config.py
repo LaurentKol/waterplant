@@ -21,6 +21,7 @@ template = {
         'api_base_url': confuse.Optional(confuse.String(default=None)),
         'long_live_token': confuse.Optional(confuse.String(default=None)),
         'connection_retry_freq': 1800,
+        'heartbeat_freq': 60,
     },
     'pots': confuse.Sequence({
         'name': str,
