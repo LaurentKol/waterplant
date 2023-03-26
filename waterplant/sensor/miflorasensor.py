@@ -13,11 +13,6 @@ class MifloraSensor(BaseSensor):
     def __init__(self, **kwargs):
         super().__init__(kwargs['type'], kwargs['name'])
         self.mac = kwargs['mac']
-
-        self.last_battery_levels_checked = datetime.now()
-        # Alternatively, for debugging, first battery check to not wait for config.check_battery_freq_days 
-        # self.last_battery_levels_checked = datetime.now() - timedelta(days=config.check_battery_freq_days)
-
         self.sensor_poller = MiFloraPoller(self.mac, BluepyBackend, cache_timeout=config.miflora_cache_timeout)
 
     def get_measurement(self, mi_type) -> Optional[int]:

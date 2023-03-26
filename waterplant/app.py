@@ -42,11 +42,12 @@ class Waterplant:
             if (time(hour=int(schedule_time_from[0]), minute=int(schedule_time_from[1])) < datetime.now().time() < time(hour=int(schedule_time_to[0]), minute=int(schedule_time_to[1]))):
                 for pot in pots:
                     # Check sensors' battery levels
-                    if config.check_battery_freq_days != 0 and (datetime.now() - pot.sensors.last_battery_levels_checked).days >= (config.check_battery_freq_days):
+                    if config.check_battery_freq_hours != 0 and (datetime.now() - pot.sensors.last_battery_levels_checked).total_seconds() >= config.check_battery_freq_hours * 3600:
                         battery_levels = pot.sensors.get_battery()
                         for name, measurement in battery_levels.items():
                             logging.debug(f'Sending to HA: sensor.{name}_battery {name}-battery {measurement}')
                             hahelper.set_state(f'sensor.waterplant_{name}_battery', f'waterplant_{name}-battery', measurement)
+                        pot.sensors.last_battery_levels_checked = datetime.now()
 
                     # Skip this pot if watered recently
                     last_watering_delta_seconds = (datetime.now() - pot.sprinkler.last_watering).seconds
