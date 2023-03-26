@@ -7,6 +7,7 @@ from RPi import GPIO
 
 from waterplant.config import config
 from waterplant.pot import Pot
+from waterplant.homeassistant import hahelper
 
 class Waterplant:
 
@@ -22,6 +23,8 @@ class Waterplant:
             GPIO.output(pot.sprinkler.sprinkler_pin, True) # Set all off
 
         while True:
+            hahelper.ensure_connected()
+
             # Water now if force_next_watering was set (via API)
             for pot in pots:
                 if pot.sprinkler.force_next_watering:
@@ -29,7 +32,6 @@ class Waterplant:
                     pot.sprinkler.water()
                 # Turn OFF Sprinkler if ON outside of water() method. This shouldn't be necessary
                 pot.sprinkler.enforce_off()
-
 
             # TODO: Move this in a helper.py or make it more readable
             schedule_time_from = config.watering_schedule_time.from_hour.split(':')
