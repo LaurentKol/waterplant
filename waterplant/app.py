@@ -42,8 +42,11 @@ class Waterplant:
             if (time(hour=int(schedule_time_from[0]), minute=int(schedule_time_from[1])) < datetime.now().time() < time(hour=int(schedule_time_to[0]), minute=int(schedule_time_to[1]))):
                 for pot in pots:
                     # Check sensors' battery levels
-                    if config.check_battery_freq_days != 0 and (datetime.now() - pot.sensors.last_battery_levels_checked).days > (config.check_battery_freq_days):
-                        pot.sensors.check_battery()
+                    if config.check_battery_freq_days != 0 and (datetime.now() - pot.sensors.last_battery_levels_checked).days >= (config.check_battery_freq_days):
+                        battery_levels = pot.sensors.get_battery()
+                        for name, measurement in battery_levels.items():
+                            logging.debug(f'Sending to HA: sensor.{name}_battery {name}-battery {measurement}')
+                            hahelper.set_state(f'sensor.waterplant_{name}_battery', f'waterplant_{name}-battery', measurement)
 
                     # Skip this pot if watered recently
                     last_watering_delta_seconds = (datetime.now() - pot.sprinkler.last_watering).seconds
@@ -52,6 +55,7 @@ class Waterplant:
                         continue
 
                     # Skip if this pot is still moist
+                    # TODO: Send moisture level to HA
                     moisture_level = pot.sensors.get_moisture()
                     if moisture_level and moisture_level > pot.dryness_threshold:
                         logging.info(f'{pot.name} is not dry enough ({moisture_level}% moist > {pot.dryness_threshold}% moist threshold)')

@@ -2,6 +2,7 @@ import logging
 import statistics
 from typing import List, Optional
 import importlib
+from datetime import datetime, timedelta
 
 from waterplant.config import config
 from .basesensor import BaseSensor
@@ -9,6 +10,7 @@ from .basesensor import BaseSensor
 class SensorsGroup:
     def __init__(self, name: str, sensors: List[BaseSensor]) -> None:
         self.name = name
+        self.last_battery_levels_checked = datetime.now() - timedelta(days=config.check_battery_freq_days)
         self.sensors = []
         for sensor in sensors:
             # Load the class named ${type}Sensor, if type is Miflora then MifloraSensor from miflorasensor.py
@@ -19,6 +21,7 @@ class SensorsGroup:
         return f'{self.sensors}'
 
     def get_moisture(self) -> Optional[int]:
+        #TODO: use same data structure as get_battery()
         moisture_measurements = []
 
         for sensor in self.sensors:
@@ -31,3 +34,13 @@ class SensorsGroup:
             return measurements_avg
         else:
             return None
+
+    def get_battery(self) -> Optional[int]:
+        battery_levels = {}
+
+        for sensor in self.sensors:
+            if (measurement := sensor.get_battery()):
+                battery_levels.update({sensor.name: measurement})
+
+        logging.info(f'Sensors battery are: {battery_levels}')
+        return battery_levels
