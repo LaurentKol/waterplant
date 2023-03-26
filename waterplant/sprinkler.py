@@ -25,7 +25,7 @@ class Sprinkler:
     def set_force_next_watering(self, force: bool) -> None:
         self.force_next_watering = force
 
-    @hahelper.set_state
+    @hahelper.set_switch_on_off_state
     def water(self) -> None:
         drymode_msg = ' (dry-mode on, simulating)' if config.sprinkler_pump_drymode else ''
 

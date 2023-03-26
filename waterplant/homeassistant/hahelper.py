@@ -39,7 +39,7 @@ def ensure_connected() -> None:
         last_connect_retry = datetime.now()
         connect()
 
-def set_state(func):
+def set_switch_on_off_state(func):
     @functools.wraps(func)
     def wrapper_set_ha_state(*args, **kwargs):
         # Make sure that ha_client is configured and that "set_ha_state" is decorating a method of an instance with a "name" property'
@@ -50,6 +50,7 @@ def set_state(func):
             # These threads terminated, at latest after timeout. Tested with "threading.enumerate()" and "iptables -A OUTPUT -p tcp --dport 8123 -j DROP"
             Thread(target=ha_client.set_state, kwargs={'entity_id':entity_name, 'state':'on', 'attributes':{'friendly_name':switch_name}}).start()
             value = func(*args, **kwargs)
+            # TODO: join() on previous thread to ensure updates are sequential  
             Thread(target=ha_client.set_state, kwargs={'entity_id':entity_name, 'state':'off', 'attributes':{'friendly_name':switch_name}}).start()
         else:
             logging.debug(f'HA client is disabled, either in config or HA unreachable at start-up')
