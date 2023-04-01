@@ -44,16 +44,19 @@ def ensure_connected() -> None:
         last_connect_retry = datetime.now()
         connect()
 
-def set_state(entity_id, friendly_name, state) -> None:
+def set_state(kwargs) -> None:
     if is_connected():
-        Thread(target=ha_client.set_state, kwargs={'entity_id':entity_id, 'state':state, 'attributes':{'friendly_name':friendly_name}}).start()
+        Thread(target=ha_client.set_state, kwargs=kwargs).start()
+
+def set_battery_level(entity_id, state) -> None:
+    set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'battery', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
 
 def ensure_heartbeat() -> None:
     global last_heartbeat_sent
     now = datetime.now()
     if ha_integration_activated and is_connected() and (now - last_heartbeat_sent).total_seconds() > config.homeassistant.heartbeat_freq:
         last_heartbeat_sent = datetime.now()
-        set_state('binary_sensor.waterplant_heartbeat','waterplant-heartbeat','RUNNING')
+        set_state({'entity_id': 'sensor.waterplant_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
 
 def set_switch_on_off_state(func):
     @functools.wraps(func)

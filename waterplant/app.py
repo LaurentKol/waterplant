@@ -46,7 +46,8 @@ class Waterplant:
                         battery_levels = pot.sensors.get_battery()
                         for name, measurement in battery_levels.items():
                             logging.debug(f'Sending to HA: sensor.{name}_battery {name}-battery {measurement}')
-                            hahelper.set_state(f'sensor.waterplant_{name}_battery', f'waterplant_{name}-battery', measurement)
+                            hahelper.set_battery_level(f'sensor.waterplant_{name}_battery',measurement)
+
                         pot.sensors.last_battery_levels_checked = datetime.now()
 
                     # Skip this pot if watered recently
