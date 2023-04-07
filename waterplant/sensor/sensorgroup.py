@@ -21,17 +21,17 @@ class SensorsGroup:
         return f'{self.sensors}'
 
     def get_moisture(self) -> Optional[int]:
-        #TODO: use same data structure as get_battery()
-        moisture_measurements = []
+        moisture_measurements = {}
 
         for sensor in self.sensors:
             if (measurement := sensor.get_moisture()):
-                moisture_measurements.append(measurement)
+                moisture_measurements.update({sensor.name: measurement})
 
         if moisture_measurements:
-            measurements_avg = statistics.mean(moisture_measurements)
+            measurements_avg = statistics.mean(moisture_measurements.values())
             logging.debug(f'Aggregate moisture measurements: {measurements_avg}')
-            return measurements_avg
+            moisture_measurements.update({'average': measurements_avg})
+            return moisture_measurements
         else:
             return None
 

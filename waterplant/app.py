@@ -56,18 +56,20 @@ class Waterplant:
                         logging.debug(f'{pot.name} was watered recently ({last_watering_delta_seconds}s ago), skipping ...')
                         continue
 
-                    # Skip if this pot is still moist
+                    # Water pot if dry
                     # TODO: Send moisture level to HA
-                    moisture_level = pot.sensors.get_moisture()
-                    if moisture_level and moisture_level > pot.dryness_threshold:
-                        logging.info(f'{pot.name} is not dry enough ({moisture_level}% moist > {pot.dryness_threshold}% moist threshold)')
-                        continue
-                    elif not moisture_level:
+                    if (moisture_levels := pot.sensors.get_moisture()):
+                        hahelper.set_moisture_level(f'sensor.waterplant_{pot.name}_moisture', moisture_levels['average'])
+                        for sensor_name, measurement in moisture_levels.items():
+                            if not sensor_name == 'average':
+                                hahelper.set_moisture_level(f'sensor.waterplant_{sensor_name}_moisture', measurement)
+                        if moisture_levels['average'] < pot.dryness_threshold:
+                            logging.info(f'Watering {pot.name} ({moisture_levels["average"]}% moist =< {pot.dryness_threshold}% moist threshold)')
+                            pot.sprinkler.water()
+                        else:
+                            logging.info(f'{pot.name} is not dry enough ({moisture_levels["average"]}% moist > {pot.dryness_threshold}% moist threshold)')
+                    else:
                         logging.warn(f'Could not get moisture measurement for {pot.name}, skipping ...')
-                        continue
-
-                    logging.info(f'Watering {pot.name} ({moisture_level}% moist =< {pot.dryness_threshold}% moist threshold)')
-                    pot.sprinkler.water()
 
             logging.debug(f'Sleeping {config.check_for_watering_freq_seconds}s ...')
             sleep(config.check_for_watering_freq_seconds)

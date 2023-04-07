@@ -51,6 +51,9 @@ def set_state(kwargs) -> None:
 def set_battery_level(entity_id, state) -> None:
     set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'battery', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
 
+def set_moisture_level(entity_id, state) -> None:
+    set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'MOISTURE', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
+
 def ensure_heartbeat() -> None:
     global last_heartbeat_sent
     now = datetime.now()
