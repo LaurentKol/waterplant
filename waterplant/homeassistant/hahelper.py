@@ -9,8 +9,6 @@ from requests.exceptions import RequestException
 from waterplant.config import config
 
 ha_client = None
-last_connect_retry = datetime.now() - timedelta(seconds=config.homeassistant.connection_retry_freq)
-last_heartbeat_sent = datetime.now() - timedelta(seconds=config.homeassistant.heartbeat_freq)
 
 if config.homeassistant.api_base_url and config.homeassistant.long_live_token:
     ha_integration_activated = True
@@ -38,10 +36,7 @@ def is_connected() -> bool:
         return False
 
 def ensure_connected() -> None:
-    global last_connect_retry
-    now = datetime.now()
-    if ha_integration_activated and not is_connected() and (now - last_connect_retry).total_seconds() > config.homeassistant.connection_retry_freq:
-        last_connect_retry = datetime.now()
+    if ha_integration_activated and not is_connected():
         connect()
 
 def set_state(kwargs) -> None:
@@ -54,11 +49,8 @@ def set_battery_level(entity_id, state) -> None:
 def set_moisture_level(entity_id, state) -> None:
     set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'MOISTURE', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
 
-def ensure_heartbeat() -> None:
-    global last_heartbeat_sent
-    now = datetime.now()
-    if ha_integration_activated and is_connected() and (now - last_heartbeat_sent).total_seconds() > config.homeassistant.heartbeat_freq:
-        last_heartbeat_sent = datetime.now()
+def send_heartbeat() -> None:
+    if ha_integration_activated and is_connected():
         set_state({'entity_id': 'sensor.waterplant_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
 
 def set_switch_on_off_state(func):

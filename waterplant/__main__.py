@@ -6,7 +6,7 @@ import sys
 
 from RPi import GPIO
 
-from waterplant.app import Waterplant
+from waterplant.core import Waterplant
 from waterplant.api.gqlapiserver import GqlApiServer 
 from waterplant.pot import Pot
 from waterplant.config import config
@@ -27,15 +27,16 @@ if __name__ == '__main__':
         # See config.py for list of possible attributes of pot. 
         pots.append(Pot(**pot))
 
-    threading.Thread(target=Waterplant.run, kwargs={'pots':pots}, daemon=True).start()
+    waterplant = Waterplant(pots)
+    waterplant.start()
     logging.debug('Waterplant app started')
 
     # Wrapping API Server in a method because target needs a callable, if not wrapped it's not called 
     def gql_api_server():
-        GqlApiServer.create_gql_api_server(pots=pots).run(host=config.api_listening_ip)
+        GqlApiServer.create_gql_api_server(pots=pots, scheduler=waterplant.scheduler).run(host=config.api_listening_ip)
     
+    logging.debug('GraphQL API server starting')
     threading.Thread(target=gql_api_server, daemon=True).start()
-    logging.debug('GraphQL API server started')
 
     # Cleanup GPIOs when exiting
     def signal_handler(sig, frame):

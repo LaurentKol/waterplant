@@ -5,11 +5,13 @@ from typing import List
 import strawberry
 from flask import Flask
 from strawberry.flask.views import GraphQLView
+from apscheduler.schedulers.base import BaseScheduler
 
 from waterplant.pot import Pot
+from waterplant.jobs.water import water
 
 class GqlApiServer:
-    def create_gql_api_server(pots: List[Pot]) -> Flask:
+    def create_gql_api_server(pots: List[Pot], scheduler: BaseScheduler) -> Flask:
 
         @strawberry.type
         class Pot:
@@ -26,7 +28,7 @@ class GqlApiServer:
             def pot(self, info: strawberry.types.Info, name: str) -> Pot:
                 pot = [pot for pot in pots if pot.name == name].pop()
                 pot.sprinkler_last_watering = pot.sprinkler.last_watering
-                pot.sprinkler_watering_now = pot.sprinkler.force_next_watering
+                pot.sprinkler_watering_now = False
                 return pot
 
 
@@ -35,8 +37,8 @@ class GqlApiServer:
             @strawberry.mutation
             def sprinkler_force_watering(self, name: str) -> str:
                 if(pot := next((p for p in pots if p.name == name), None)):
-                    pot.sprinkler.set_force_next_watering(True)
-                    logging.info(f'[GQL] Got force watering {name}')
+                    logging.info(f'[GQL] Got force watering {name}, scheduling watering job')
+                    scheduler.add_job(water, kwargs={'pot': pot}, id=f'watering-{pot.name}', misfire_grace_time=60, coalesce=True, executor='watering')
                     return name
                 else:
                     return f'Unknown pot {name}'
