@@ -1,0 +1,10 @@
+RPi.GPIO
+homeassistant_api==3.0.4
+confuse
+requests
+apscheduler
+strawberry-graphql
+flask
+btlewrap
+miflora
+bluepy
