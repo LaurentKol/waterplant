@@ -7,7 +7,8 @@ unvalidated_config = confuse.RootView([source])
 template = {
     'api_listening_ip': str,
     'check_battery_freq_hours': 24,
-    'check_moisture_freq_minutes': 30,
+    'check_sensors_freq_minutes': 30,
+    'sensor_types': confuse.StrSeq(default=['moisture']), #TODO: limit to (moisture|temperature|light|conductivity|battery)
     'check_moisture_and_water_freq_cron': { # Make sure this is less frequent then miflora_cache_timeout
         'day': confuse.Optional(confuse.String(default='*')),
         'week': confuse.Optional(confuse.String(default='*')),
@@ -29,7 +30,6 @@ template = {
     'pots': confuse.Sequence({
         'name': str,
         'dryness_threshold': 30,
-        'max_watering_freq': 300,
         'sprinkler_pin': 8,
         'sensors': confuse.Sequence({
             'type': confuse.Choice(choices=['Miflora','Dummy'], default='Miflora'), # TODO: Generate pattern from scanning existing waterplant.sensor.*

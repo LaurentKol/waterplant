@@ -45,17 +45,23 @@ def set_state(kwargs) -> None:
         # Thread(target=ha_client.set_state, kwargs={'state': state}).start()
         Thread(target=ha_client.set_state, kwargs=kwargs).start()
 
-def set_battery_level(entity_id, state) -> None:
-    set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'battery', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
-
 def set_moisture_level(entity_id, state) -> None:
     set_state({'entity_id': entity_id, 'state': state, 'attributes': {'device_class':'MOISTURE', 'state_class': 'measurement', 'unit_of_measurement': '%'}})
+
+def set_sensor_measurements(sensor_type, entity_id, state) -> None:
+    sensor_type_attributes_map = {'temperature': {'device_class':'TEMPERATURE', 'state_class': 'measurement', 'unit_of_measurement': '°C'},
+                              'light': {'device_class':'ILLUMINANCE', 'state_class': 'measurement', 'unit_of_measurement': 'lx'},
+                              'conductivity': {'device_class':'conductivity', 'state_class': 'measurement', 'unit_of_measurement': 'µS/cm'}, # Not a HA decice class
+                              'moisture': {'device_class':'MOISTURE', 'state_class': 'measurement', 'unit_of_measurement': '%'},
+                              'battery': {'device_class':'BATTERY', 'state_class': 'measurement', 'unit_of_measurement': '%'}}
+    set_state({'entity_id': entity_id, 'state': state, 'attributes': sensor_type_attributes_map[sensor_type]})
 
 def send_heartbeat() -> None:
     if ha_integration_activated and is_connected():
         set_state({'entity_id': 'sensor.waterplant_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
 
 def set_switch_on_off_state(func):
+    #BUG: ha_client.set_state threads order is not guarantee.
     @functools.wraps(func)
     def wrapper_set_ha_state(*args, **kwargs):
         # Make sure that ha_client is configured and that "set_ha_state" is decorating a method of an instance with a "name" property'

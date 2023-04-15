@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from btlewrap.bluepy import BluepyBackend
 from btlewrap.base import BluetoothBackendException
@@ -15,7 +15,7 @@ class MifloraSensor(BaseSensor):
         self.mac = kwargs['mac']
         self.sensor_poller = MiFloraPoller(self.mac, BluepyBackend, cache_timeout=config.miflora_cache_timeout)
 
-    def get_measurement(self, mi_type) -> Optional[int]:
+    def get_generic_measurement(self, mi_type) -> Optional[int]:
         try:
             measurement = self.sensor_poller.parameter_value(mi_type)
             logging.debug(f'{self.name} {mi_type} measurement: {measurement}')
@@ -25,7 +25,16 @@ class MifloraSensor(BaseSensor):
             return None
 
     def get_moisture(self) -> Optional[int]:
-        return self.get_measurement(MI_MOISTURE)
+        return self.get_generic_measurement(MI_MOISTURE)
+
+    def get_measurement(self, sensor_type: str) -> Optional[int]:
+        mi_code_map = {'battery': MI_BATTERY, 'conductivity': MI_CONDUCTIVITY, 'light': MI_LIGHT, 'moisture': MI_MOISTURE, 'temperature': MI_TEMPERATURE}
+        try:
+            mi_code = mi_code_map[sensor_type]
+            return self.get_generic_measurement(mi_code)
+        except KeyError:
+            logging.error(f'Unknown mi sensor code: {sensor_type}')
+            return None
 
     def get_battery(self) -> Optional[int]:
-        return self.get_measurement(MI_BATTERY)
+        return self.get_generic_measurement(MI_BATTERY)

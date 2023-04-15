@@ -17,7 +17,6 @@ class GqlApiServer:
         class Pot:
             name: str
             dryness_threshold: int
-            max_watering_freq: int
             sprinkler_last_watering: datetime
             sprinkler_watering_now: bool
 

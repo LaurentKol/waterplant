@@ -5,10 +5,9 @@ from .sprinkler import Sprinkler
 
 class Pot:
     '''Pot of plant contains a group of moisture sensors and a sprinkler'''
-    def __init__(self, name: str, dryness_threshold: int, max_watering_freq: int, sprinkler_pin: int, sensors: List[Dict]) -> None:
+    def __init__(self, name: str, dryness_threshold: int, sprinkler_pin: int, sensors: List[Dict]) -> None:
         self.name = name
         self.dryness_threshold = dryness_threshold
-        self.max_watering_freq = max_watering_freq
         self.sensors = SensorsGroup(name, sensors)
         self.sprinkler = Sprinkler(name, sprinkler_pin)
 

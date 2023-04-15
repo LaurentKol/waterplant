@@ -35,6 +35,28 @@ class SensorsGroup:
         else:
             return None
 
+    def get_measurements(self, sensor_types: List[str]) -> dict:
+        """ Returns e.g: {'average': 220, 'light':{'balcony1a': 200, ... }, 'temperature': { ... }}
+        Might also return partial list of sensor_types in case all sensors of a type are unavailable
+        """
+        measurements = {}
+
+        for sensor_type in sensor_types:
+            measurements[sensor_type] = {}
+
+            for sensor in self.sensors:
+                if (measurement := sensor.get_measurement(sensor_type)):
+                    logging.debug(f'measurement: {measurement}')
+                    measurements[sensor_type].update({sensor.name: measurement})
+
+            if sensor_type in measurements and measurements[sensor_type]:
+                logging.debug(f'measurements[sensor_type].values(): {measurements[sensor_type].values()}')
+                sensor_measurements_avg = statistics.mean(measurements[sensor_type].values())
+                logging.debug(f'Aggregate {sensor_type} measurements: {sensor_measurements_avg}')
+                measurements[sensor_type].update({'average': sensor_measurements_avg})
+
+        return measurements
+
     def get_battery(self) -> Optional[int]:
         battery_levels = {}
 
