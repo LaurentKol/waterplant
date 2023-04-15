@@ -41,6 +41,8 @@ def ensure_connected() -> None:
 
 def set_state(kwargs) -> None:
     if is_connected():
+        # state = State(**kwargs)
+        # Thread(target=ha_client.set_state, kwargs={'state': state}).start()
         Thread(target=ha_client.set_state, kwargs=kwargs).start()
 
 def set_battery_level(entity_id, state) -> None:

@@ -7,9 +7,9 @@ from RPi import GPIO
 from waterplant.config import config
 from waterplant.pot import Pot
 from waterplant.jobs.heartbeat import heartbeat
-from waterplant.jobs.battery_check import battery_check
-from waterplant.jobs.moisture_check import moisture_check
-from waterplant.jobs.watering_moisture_check import watering_moisture_check
+from waterplant.jobs.check_battery import check_battery
+from waterplant.jobs.check_moisture import check_moisture
+from waterplant.jobs.check_moisture_and_water import check_moisture_and_water
 from waterplant.homeassistant import hahelper
 from waterplant.homeassistant.hahelper import ensure_connected
 
@@ -20,7 +20,6 @@ class Waterplant:
             'default': ThreadPoolExecutor(20),
             'watering': ThreadPoolExecutor(max_workers=1),
             'bluetooth': ThreadPoolExecutor(max_workers=1),
-            'ha_executor': ThreadPoolExecutor(max_workers=5)
         })
 
 
@@ -35,9 +34,16 @@ class Waterplant:
 
         hahelper.connect()
         self.scheduler.add_job(heartbeat, 'interval', seconds=config.homeassistant.heartbeat_freq_seconds)
-        self.scheduler.add_job(ensure_connected, 'interval', seconds=config.homeassistant.connection_retry_freq_seconds)
-        self.scheduler.add_job(battery_check, 'interval', kwargs={'pots': self.pots}, misfire_grace_time=300, hours=config.check_battery_freq_hours, jitter=120, coalesce=True, executor='bluetooth')
-        self.scheduler.add_job(moisture_check, 'interval', kwargs={'pots': self.pots}, misfire_grace_time=300, minutes=5, jitter=120, coalesce=True, executor='bluetooth')
-        self.scheduler.add_job(watering_moisture_check, 'cron', day=config.watering_schedule_cron.day, week=config.watering_schedule_cron.week, day_of_week=config.watering_schedule_cron.day_of_week, hour=config.watering_schedule_cron.hour, minute=config.watering_schedule_cron.minute, kwargs={'pots': self.pots, 'scheduler': self.scheduler}, coalesce=True, executor='bluetooth')
+        self.scheduler.add_job(ensure_connected, 'interval', 
+                               seconds=config.homeassistant.connection_retry_freq_seconds)
+        self.scheduler.add_job(check_battery, 'interval', hours=config.check_battery_freq_hours, misfire_grace_time=300, jitter=120, kwargs={'pots': self.pots}, coalesce=True, executor='bluetooth')
+        self.scheduler.add_job(check_moisture, 'interval', minutes=config.check_moisture_freq_minutes, misfire_grace_time=300, jitter=120, kwargs={'pots': self.pots}, coalesce=True, executor='bluetooth')
+        self.scheduler.add_job(check_moisture_and_water, 'cron', 
+                               day=config.check_moisture_and_water_freq_cron.day, 
+                               week=config.check_moisture_and_water_freq_cron.week, 
+                               day_of_week=config.check_moisture_and_water_freq_cron.day_of_week, 
+                               hour=config.check_moisture_and_water_freq_cron.hour, 
+                               minute=config.check_moisture_and_water_freq_cron.minute, 
+                               kwargs={'pots': self.pots, 'scheduler': self.scheduler}, coalesce=True, executor='bluetooth')
 
         self.scheduler.start()

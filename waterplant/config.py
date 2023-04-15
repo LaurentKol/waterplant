@@ -6,18 +6,18 @@ source = confuse.YamlSource('config.yaml')
 unvalidated_config = confuse.RootView([source])
 template = {
     'api_listening_ip': str,
-    'check_for_watering_freq_seconds': 3,
-    'check_battery_freq_hours': 1,
-    'logfile': '/tmp/waterplant.log',
-    'loglevel': confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'], default='INFO'),
-    'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
-    'watering_schedule_cron': {
+    'check_battery_freq_hours': 24,
+    'check_moisture_freq_minutes': 30,
+    'check_moisture_and_water_freq_cron': { # Make sure this is less frequent then miflora_cache_timeout
         'day': confuse.Optional(confuse.String(default='*')),
         'week': confuse.Optional(confuse.String(default='*')),
         'day_of_week': confuse.Optional(confuse.String(default='*')),
         'hour': confuse.Optional(confuse.String(default='*')),
-        'minute': confuse.Optional(confuse.String(default='*')),
+        'minute': confuse.Optional(confuse.String(default='0')),
     },
+    'logfile': '/tmp/waterplant.log',
+    'loglevel': confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'], default='INFO'),
+    'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
     'watering_duration_seconds': 30,
     'sprinkler_pump_drymode': bool,
     'homeassistant': {
