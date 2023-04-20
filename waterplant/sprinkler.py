@@ -8,10 +8,11 @@ from waterplant.config import config
 from waterplant.homeassistant import hahelper
 
 class Sprinkler:
-    def __init__(self, name: str, sprinkler_pin: int) -> None:
+    def __init__(self, name: str, sprinkler_pin: int, disabled: bool) -> None:
         self.name = name
         self.sprinkler_pin = sprinkler_pin
         self.last_watering = datetime.min
+        self.disabled = disabled
 
     def __repr__(self) -> str:
         return f'{self.last_watering}'
@@ -23,6 +24,10 @@ class Sprinkler:
 
     @hahelper.set_switch_on_off_state
     def water(self) -> None:
+        if self.disabled:
+            logging.info(f'Sprinkler {self.name} is disabled, not watering')
+            return
+
         drymode_msg = ' (dry-mode on, simulating)' if config.sprinkler_pump_drymode else ''
 
         logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s{drymode_msg}')
