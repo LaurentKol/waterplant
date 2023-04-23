@@ -23,8 +23,8 @@ class Sprinkler:
             GPIO.output(self.sprinkler_pin, True)
 
     @hahelper.set_switch_on_off_state
-    def water(self) -> None:
-        if self.disabled:
+    def water(self, force: bool = False) -> None:
+        if self.disabled and not force:
             logging.info(f'Sprinkler {self.name} is disabled, not watering')
             return
 

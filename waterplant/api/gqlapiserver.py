@@ -37,7 +37,7 @@ class GqlApiServer:
             def sprinkler_force_watering(self, name: str) -> str:
                 if(pot := next((p for p in pots if p.name == name), None)):
                     logging.info(f'[GQL] Got force watering {name}, scheduling watering job')
-                    scheduler.add_job(water, kwargs={'pot': pot}, id=f'watering-{pot.name}', misfire_grace_time=60, coalesce=True, executor='watering')
+                    scheduler.add_job(water, kwargs={'pot': pot, 'force': True}, id=f'watering-{pot.name}', misfire_grace_time=60, coalesce=True, executor='watering')
                     return name
                 else:
                     return f'Unknown pot {name}'
