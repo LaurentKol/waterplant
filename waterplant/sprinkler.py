@@ -12,6 +12,7 @@ class Sprinkler:
         self.name = name
         self.sprinkler_pin = sprinkler_pin
         self.last_watering = datetime.min
+        self.is_watering_now = False
         self.disabled = disabled
 
     def __repr__(self) -> str:
@@ -33,6 +34,7 @@ class Sprinkler:
         logging.info(f'Turning on sprinkler {self.name} for {config.watering_duration_seconds}s{drymode_msg}')
         self.last_watering = datetime.now()
 
+        self.is_watering_now = True
         if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, False)
         logging.info(f'Turned on sprinkler {self.name}{drymode_msg}')
@@ -42,4 +44,5 @@ class Sprinkler:
 
         if not config.sprinkler_pump_drymode:
             GPIO.output(self.sprinkler_pin, True)
+        self.is_watering_now = False
         logging.info(f'Turned off sprinkler {self.name}{drymode_msg}')
