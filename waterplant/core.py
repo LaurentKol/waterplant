@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -32,12 +33,12 @@ class Waterplant:
             GPIO.output(pot.sprinkler.sprinkler_pin, True) # Set all off
 
         hahelper.connect()
-        self.scheduler.add_job(heartbeat, 'interval', seconds=config.homeassistant.heartbeat_freq_seconds)
+        self.scheduler.add_job(heartbeat, 'interval', next_run_time=datetime.now(), seconds=config.homeassistant.heartbeat_freq_seconds)
         self.scheduler.add_job(ensure_connected, 'interval', 
                                seconds=config.homeassistant.connection_retry_freq_seconds)
         self.scheduler.add_job(check_sensors, 'interval',
-                               minutes=config.check_sensors_freq_minutes, misfire_grace_time=300, jitter=120,
-                               kwargs={'pots': self.pots, 'sensor_types': config.sensor_types}, coalesce=True, executor='bluetooth')
+                               next_run_time=datetime.now(), minutes=config.check_sensors_freq_minutes, coalesce=True, jitter=120,
+                               kwargs={'pots': self.pots, 'sensor_types': config.sensor_types}, executor='bluetooth')
         self.scheduler.add_job(check_moisture_and_water, 'cron', 
                                day=config.check_moisture_and_water_freq_cron.day, 
                                week=config.check_moisture_and_water_freq_cron.week, 
