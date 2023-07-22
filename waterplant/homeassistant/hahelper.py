@@ -61,6 +61,10 @@ def send_heartbeat() -> None:
     if ha_integration_activated and is_connected():
         set_state({'entity_id': 'sensor.waterplant_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
 
+def send_push_notification(message) -> None:
+    if ha_integration_activated and is_connected() and config.homeassistant.notify_service:
+        ha_client.trigger_service('notify', config.homeassistant.notify_service, title='Waterplant', message=message)
+
 def set_switch_on_off_state(func):
     #BUG: ha_client.set_state threads order is not guarantee.
     @functools.wraps(func)

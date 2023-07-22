@@ -23,6 +23,7 @@ template = {
     'homeassistant': {
         'api_base_url': confuse.Optional(confuse.String(default=None)),
         'long_live_token': confuse.Optional(confuse.String(default=None)),
+        'notify_service': confuse.Optional(confuse.String(default=None)),
         'connection_retry_freq_seconds': 1800,
         'heartbeat_freq_seconds': 60,
     },

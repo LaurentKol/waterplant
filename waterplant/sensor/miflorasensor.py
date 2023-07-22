@@ -7,6 +7,7 @@ from btlewrap.base import BluetoothBackendException
 from miflora.miflora_poller import (MI_BATTERY, MI_CONDUCTIVITY, MI_LIGHT, MI_MOISTURE, MI_TEMPERATURE, MiFloraPoller)
 
 from waterplant.config import config
+from waterplant.homeassistant import hahelper
 from .basesensor import BaseSensor
 
 class MifloraSensor(BaseSensor):
@@ -19,9 +20,18 @@ class MifloraSensor(BaseSensor):
         try:
             measurement = self.sensor_poller.parameter_value(mi_type)
             logging.debug(f'{self.name} {mi_type} measurement: {measurement}')
+            self.last_successful_reading_ts = datetime.now()
+            self.last_successful_reading_and_no_notification_ts = datetime.now()
+            self.consecutive_failed_reading = 0
             return measurement
         except BluetoothBackendException as e:
-            logging.warn(f'Failed to read {mi_type} from sensor {self.name}: {e}')
+            logging.warn(f'Failed to read {mi_type} from sensor {self.name}, {self.consecutive_failed_reading} consecutive failed readings, {self.last_successful_reading_ts} is last successful: {e}')
+            self.consecutive_failed_reading += 1
+            logging.debug(f'date condition:{self.last_successful_reading_and_no_notification_ts} and {datetime.now() - timedelta(days=3)}')
+            if self.last_successful_reading_and_no_notification_ts < datetime.now() - timedelta(days=3):
+                hahelper.send_push_notification(f'No readings from sensor {self.name} for 3 days, {self.consecutive_failed_reading} consecutive reading failures') 
+                self.last_successful_reading_and_no_notification_ts = datetime.now()
+                self.consecutive_failed_reading = 0
             return None
 
     def get_moisture(self) -> Optional[int]:
