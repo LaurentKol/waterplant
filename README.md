@@ -45,9 +45,9 @@ source venv/bin/activate
 python -m waterplant
 ```
 
-4. Set each pump's relay's GPIO (aka "BCM" or "Broadcom") to low at Raspberry's boot time by adding below code to `/boot/firmware/usercfg.txt`
+4. Ensure the GPIOs controlling your pumps/valves are set off/closed at boot time. You can do this by editing `/boot/firmware/usercfg.txt` for Ubuntu 20 (Focal) or `/boot/firmware/config.txt` for Ubuntu 22 (Jammy). In this case off/closed is LOW. 
 ```
-gpio=<GPIO-of-pump-1>=op,dh
+gpio=<GPIO-of-pump-1>=op,dl
 ...
 ```
 Or if your Raspberry Pi's firemware has an older build date than 21/03/2018
