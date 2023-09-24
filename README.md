@@ -87,6 +87,9 @@ For turning pumps on/off this example uses relay switches. Transistors or optoco
 <img src="https://github.com/LaurentKol/waterplant/assets/1433441/a1fb3b68-3e4a-4680-8bcc-dc33a715a382" alt="diaphragm_pump" width="400"><img src="https://github.com/LaurentKol/waterplant/assets/1433441/3fef0cfd-8580-4fa8-b256-eef8cdb0cad1" alt="diaphragm_pump_with_controller_container" width="400">
 
 ### Solenoid valves
+
+<img src="https://github.com/LaurentKol/waterplant/assets/1433441/06c44ed5-ac37-40d3-9cd3-7df7e37c258e" alt="Solenoid valves module" width="400">
+<img src="https://github.com/LaurentKol/waterplant/assets/1433441/cc16e3f4-8f1e-4437-beed-7dc3fc9bbb52" alt="Solenoid valves + controller module" width="400">
 <img src="https://github.com/LaurentKol/waterplant/assets/1433441/d5a46b92-4e89-4590-8053-51ffe98eee38" alt="Water input at bottom" width="400">
 <img src="https://github.com/LaurentKol/waterplant/assets/1433441/3d78d611-a721-4f03-a823-bdd98a84c786" alt="All enclosure opened" width="400">
 <img src="https://github.com/LaurentKol/waterplant/assets/1433441/43f2ab02-e91a-4d5a-89a2-b8bd43f575da" alt="Only main enclosure opened" width="400">
