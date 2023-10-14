@@ -52,6 +52,7 @@ class GqlApiServer:
             name: str
             dryness_threshold: int
             sprinkler_pin: int
+            sprinkler_pin_off_state: bool
             sprinkler_disabled: bool
             sensors: List[SensorConfig]
 

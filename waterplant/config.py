@@ -31,6 +31,7 @@ template = {
         'name': str,
         'dryness_threshold': 30,
         'sprinkler_pin': 8,
+        'sprinkler_pin_off_state': confuse.Optional(bool, default=False), # False = GPIO.LOW and True = GPIO.HIGH
         'sprinkler_disabled': confuse.Optional(bool, default=False),
         'sensors': confuse.Sequence({
             'type': confuse.Choice(choices=['Miflora','Dummy'], default='Miflora'), # TODO: Generate pattern from scanning existing waterplant.sensor.*

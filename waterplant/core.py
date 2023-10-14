@@ -30,7 +30,7 @@ class Waterplant:
         # Set all pump off as we're not sure in which state pins are at start-up
         for pot in self.pots:
             GPIO.setup(pot.sprinkler.sprinkler_pin, GPIO.OUT)
-            GPIO.output(pot.sprinkler.sprinkler_pin, True) # Set all off
+            GPIO.output(pot.sprinkler.sprinkler_pin, pot.sprinkler.sprinkler_pin_off_state) # Set all off
 
         hahelper.connect()
         self.scheduler.add_job(heartbeat, 'interval', next_run_time=datetime.now(), seconds=config.homeassistant.heartbeat_freq_seconds)
