@@ -21,6 +21,7 @@ template = {
     'watering_duration_seconds': 30,
     'sprinkler_pump_drymode': bool,
     'homeassistant': {
+        'entity_prefix': confuse.Optional(confuse.String(default='waterplant')),
         'api_base_url': confuse.Optional(confuse.String(default=None)),
         'long_live_token': confuse.Optional(confuse.String(default=None)),
         'notify_service': confuse.Optional(confuse.String(default=None)),

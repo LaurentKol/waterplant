@@ -59,11 +59,11 @@ def set_sensor_measurements(sensor_type, entity_id, state) -> None:
 
 def send_heartbeat() -> None:
     if ha_integration_activated and is_connected():
-        set_state({'entity_id': 'sensor.waterplant_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
+        set_state({'entity_id': f'sensor.{config.homeassistant.entity_prefix}_heartbeat', 'state': str(datetime.now()), 'attributes': {'device_class': 'timestamp', 'state_class': 'measurement' }})
 
 def send_push_notification(message) -> None:
     if ha_integration_activated and is_connected() and config.homeassistant.notify_service:
-        ha_client.trigger_service('notify', config.homeassistant.notify_service, title='Waterplant', message=message)
+        ha_client.trigger_service('notify', config.homeassistant.notify_service, title=f'Waterplant ({config.homeassistant.entity_prefix})', message=message)
 
 def set_switch_on_off_state(func):
     #BUG: ha_client.set_state threads order is not guarantee.
@@ -72,8 +72,8 @@ def set_switch_on_off_state(func):
         # Make sure that ha_client is configured and that "set_ha_state" is decorating a method of an instance with a "name" property'
         # if not, just called decorated method without update state in home-assitant. 
         if ha_client and args and len(args) > 0 and hasattr(args[0], 'name'):
-            switch_name = f'waterplant_{args[0].name}'
-            entity_name = f'switch.{switch_name}'
+            switch_name = f'{args[0].name}'
+            entity_name = f'switch.{config.homeassistant.entity_prefix}_{switch_name}'
             # These threads terminated, at latest after timeout. Tested with "threading.enumerate()" and "iptables -A OUTPUT -p tcp --dport 8123 -j DROP"
             Thread(target=ha_client.set_state, kwargs={'entity_id':entity_name, 'state':'on', 'attributes':{'friendly_name':switch_name}}).start()
             value = func(*args, **kwargs)
