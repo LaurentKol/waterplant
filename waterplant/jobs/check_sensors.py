@@ -12,9 +12,9 @@ def check_sensors(pots: List[Pot], sensor_types: List[str]):
             measurements = pot.sensors.get_measurements([sensor_type])
             if measurements and sensor_type in measurements:
                 if 'average' in measurements[sensor_type]:
-                    hahelper.set_sensor_measurements(sensor_type, f'sensor.{config.homeassistant.entity_prefix}_{pot.name}_{sensor_type}', measurements[sensor_type]['average'])
+                    hahelper.set_sensor_measurements(sensor_type, f'sensor.{config.homeassistant.entity_prefix}_pot_{pot.name}_{sensor_type}', measurements[sensor_type]['average'])
                 for sensor_name, measurement in measurements[sensor_type].items():
                     if not sensor_name == 'average':
-                        hahelper.set_sensor_measurements(sensor_type, f'sensor.{config.homeassistant.entity_prefix}_{sensor_name}_{sensor_type}', measurement)
+                        hahelper.set_sensor_measurements(sensor_type, f'sensor.{config.homeassistant.entity_prefix}_sensor_{sensor_name}_{sensor_type}', measurement)
             else:
-                logging.warn(f'Could not get moisture measurement for {sensor_type} for {pot.name}, skipping ...')
+                logging.warn(f'Could not get moisture measurement for {sensor_type} for pot {pot.name}, skipping ...')
