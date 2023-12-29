@@ -34,9 +34,6 @@ class MifloraSensor(BaseSensor):
                 self.consecutive_failed_reading = 0
             return None
 
-    def get_moisture(self) -> Optional[int]:
-        return self.get_generic_measurement(MI_MOISTURE)
-
     def get_measurement(self, sensor_type: str) -> Optional[int]:
         mi_code_map = {'battery': MI_BATTERY, 'conductivity': MI_CONDUCTIVITY, 'light': MI_LIGHT, 'moisture': MI_MOISTURE, 'temperature': MI_TEMPERATURE}
         try:
@@ -45,6 +42,3 @@ class MifloraSensor(BaseSensor):
         except KeyError:
             logging.error(f'Unknown mi sensor code: {sensor_type}')
             return None
-
-    def get_battery(self) -> Optional[int]:
-        return self.get_generic_measurement(MI_BATTERY)

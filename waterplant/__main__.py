@@ -5,6 +5,8 @@ import signal
 import sys
 
 from RPi import GPIO
+# import pdb_attach
+# pdb_attach.listen(50000)
 
 from waterplant.core import Waterplant
 from waterplant.api.gqlapiserver import GqlApiServer 
