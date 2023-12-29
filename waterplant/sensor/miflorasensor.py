@@ -14,7 +14,7 @@ class MifloraSensor(BaseSensor):
     def __init__(self, **kwargs):
         super().__init__(kwargs['type'], kwargs['name'])
         self.mac = kwargs['mac']
-        self.sensor_poller = MiFloraPoller(self.mac, BluepyBackend, cache_timeout=config.miflora_cache_timeout)
+        self.sensor_poller = MiFloraPoller(self.mac, BluepyBackend, cache_timeout=config.miflora_cache_timeout, adapter=config.miflora_bluetooth_adapter)
 
     def get_generic_measurement(self, mi_type) -> Optional[int]:
         try:

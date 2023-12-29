@@ -17,6 +17,7 @@ template = {
     },
     'logfile': '/tmp/waterplant.log',
     'loglevel': confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'], default='INFO'),
+    'miflora_bluetooth_adapter': confuse.Optional(confuse.String(default='hci0')),
     'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
     'watering_duration_seconds': 30,
     'sprinkler_pump_drymode': bool,
