@@ -40,11 +40,11 @@ class Waterplant:
                                next_run_time=datetime.now(), minutes=config.check_sensors_freq_minutes, coalesce=True, jitter=120,
                                kwargs={'pots': self.pots, 'sensor_types': config.sensor_types}, executor='bluetooth')
         self.scheduler.add_job(check_moisture_and_water, 'cron', 
-                               day=config.check_moisture_and_water_freq_cron.day, 
-                               week=config.check_moisture_and_water_freq_cron.week, 
-                               day_of_week=config.check_moisture_and_water_freq_cron.day_of_week, 
-                               hour=config.check_moisture_and_water_freq_cron.hour, 
-                               minute=config.check_moisture_and_water_freq_cron.minute, 
+                               day=config.watering_schedule_cron.day, 
+                               week=config.watering_schedule_cron.week, 
+                               day_of_week=config.watering_schedule_cron.day_of_week, 
+                               hour=config.watering_schedule_cron.hour, 
+                               minute=config.watering_schedule_cron.minute, 
                                kwargs={'pots': self.pots, 'scheduler': self.scheduler}, coalesce=True, executor='bluetooth')
 
         self.scheduler.start()

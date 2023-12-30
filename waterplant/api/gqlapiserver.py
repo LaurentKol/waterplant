@@ -61,7 +61,7 @@ class GqlApiServer:
             api_listening_ip: str
             check_sensors_freq_minutes: int
             sensor_types: List[str]
-            check_moisture_and_water_freq_cron: checkMoistureAndWaterFreqCronConfig
+            watering_schedule_cron: checkMoistureAndWaterFreqCronConfig
             logfile: str
             loglevel: str
             miflora_cache_timeout: int

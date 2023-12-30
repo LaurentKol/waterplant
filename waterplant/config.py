@@ -8,7 +8,7 @@ template = {
     'api_listening_ip': str,
     'check_sensors_freq_minutes': confuse.Integer(default=30),
     'sensor_types': confuse.StrSeq(default=['moisture']), #TODO: limit to (moisture|temperature|light|conductivity|battery)
-    'check_moisture_and_water_freq_cron': { # Make sure this is less frequent then miflora_cache_timeout
+    'watering_schedule_cron': { # Make sure this is less frequent then miflora_cache_timeout
         'day': confuse.Optional(confuse.String(default='*')),
         'week': confuse.Optional(confuse.String(default='*')),
         'day_of_week': confuse.Optional(confuse.String(default='*')),
