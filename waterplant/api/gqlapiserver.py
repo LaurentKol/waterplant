@@ -38,8 +38,6 @@ class GqlApiServer:
         @strawberry.type
         class homeassistantConfig:
             api_base_url: str
-            connection_retry_freq_seconds: int
-            heartbeat_freq_seconds: int
 
         @strawberry.type
         class SensorConfig:
@@ -59,7 +57,6 @@ class GqlApiServer:
         @strawberry.type
         class Config:
             api_listening_ip: str
-            check_sensors_freq_minutes: int
             sensor_types: List[str]
             watering_schedule_cron: checkMoistureAndWaterFreqCronConfig
             logfile: str

@@ -11,8 +11,8 @@ frequency_regexp = r'^(\d+)([d|h|m|s])$'
 
 template = {
     'api_listening_ip': str,
-    'check_sensors_freq_minutes': confuse.Integer(default=30),
-    'sensor_types': confuse.StrSeq(default=['moisture']), #TODO: limit to (moisture|temperature|light|conductivity|battery)
+    'check_sensors_frequency': confuse.String(pattern=frequency_regexp, default='3h'),
+    'sensor_types': confuse.Sequence(confuse.Choice(choices=['moisture','temperature','light','conductivity','battery'], default='moisture')),
     'watering_schedule_cron': { # Make sure this is less frequent then miflora_cache_timeout
         'day': confuse.Optional(confuse.String(default='*')),
         'week': confuse.Optional(confuse.String(default='*')),
@@ -31,14 +31,13 @@ template = {
         'api_base_url': confuse.Optional(confuse.String(default=None)),
         'long_live_token': confuse.Optional(confuse.String(default=None)),
         'notify_service': confuse.Optional(confuse.String(default=None)),
-        'connection_retry_freq_seconds': 1800,
-        'heartbeat_freq_seconds': 60,
+        'connection_retry_frequency': confuse.String(pattern=frequency_regexp, default='30m'),
+        'heartbeat_frequency': confuse.String(pattern=frequency_regexp, default='60s'),
     },
     'pots': confuse.Sequence({
         'name': str,
-        'watering_triggers': confuse.StrSeq(default=['dryness_threshold','min_watering_time']), #TODO: limit to (dryness_threshold|min_watering_time)
+        'watering_triggers': confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time'], default=['dryness_threshold','min_watering_time'])),
         'dryness_threshold': 30,
-        # 'minimum_watering_days': confuse.Integer(default=None), # TODO: Implement this . Water at least every N days regardless of sensors value
         'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
         'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='10m'),
         'sprinkler_pin': 8,
