@@ -1,9 +1,14 @@
+from datetime import timedelta
+import re
 from sys import exit
-from datetime import time
 
 import confuse
+
+
 source = confuse.YamlSource('config.yaml')
 unvalidated_config = confuse.RootView([source])
+frequency_regexp = r'^(\d+)([d|h|m|s])$'
+
 template = {
     'api_listening_ip': str,
     'check_sensors_freq_minutes': confuse.Integer(default=30),
@@ -31,7 +36,11 @@ template = {
     },
     'pots': confuse.Sequence({
         'name': str,
+        'watering_triggers': confuse.StrSeq(default=['dryness_threshold','min_watering_time']), #TODO: limit to (dryness_threshold|min_watering_time)
         'dryness_threshold': 30,
+        # 'minimum_watering_days': confuse.Integer(default=None), # TODO: Implement this . Water at least every N days regardless of sensors value
+        'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
+        'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='10m'),
         'sprinkler_pin': 8,
         'sprinkler_pin_off_state': confuse.Optional(bool, default=False), # False = GPIO.LOW and True = GPIO.HIGH
         'sprinkler_disabled': confuse.Optional(bool, default=False),
@@ -42,6 +51,18 @@ template = {
         }),
     }),
 }
+
+def parse_duration_string(input_str):
+    '''Skipping validation here since it's already done in Confuse template'''
+    match = re.match(frequency_regexp, input_str)
+    if match:
+        value, unit = map(match.group, [1, 2])
+        unit_mapping = {'d': 'days', 'h': 'hours', 'm': 'minutes', 's': 'seconds'}
+
+        duration = timedelta(**{unit_mapping[unit]: int(value)})
+        return duration
+    else:
+        raise ValueError(f"Invalid input format. Use the pattern '{frequency_regexp}'.")
 
 try:
     config = unvalidated_config.get(template)

@@ -12,7 +12,8 @@ class Sprinkler:
         self.name = name
         self.sprinkler_pin = sprinkler_pin
         self.sprinkler_pin_off_state = sprinkler_pin_off_state
-        self.last_watering = datetime.min
+        # self.last_watering = datetime.min
+        self.last_watering = datetime.now()
         self.is_watering_now = False
         self.disabled = disabled
 

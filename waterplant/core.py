@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -9,7 +9,7 @@ from waterplant.config import config
 from waterplant.pot import Pot
 from waterplant.jobs.heartbeat import heartbeat
 from waterplant.jobs.check_sensors import check_sensors
-from waterplant.jobs.check_moisture_and_water import check_moisture_and_water
+from waterplant.jobs.check_watering import check_watering
 from waterplant.homeassistant import hahelper
 from waterplant.homeassistant.hahelper import ensure_connected
 
@@ -21,7 +21,6 @@ class Waterplant:
             'watering': ThreadPoolExecutor(max_workers=1),
             'bluetooth': ThreadPoolExecutor(max_workers=1),
         })
-
 
     def start(self) -> None:
         # Set pins' mode
@@ -37,14 +36,14 @@ class Waterplant:
         self.scheduler.add_job(ensure_connected, 'interval', 
                                seconds=config.homeassistant.connection_retry_freq_seconds)
         self.scheduler.add_job(check_sensors, 'interval',
-                               next_run_time=datetime.now(), minutes=config.check_sensors_freq_minutes, coalesce=True, jitter=120,
+                               next_run_time=datetime.now() + timedelta(minutes=1), minutes=config.check_sensors_freq_minutes, misfire_grace_time=30, coalesce=True, jitter=120,
                                kwargs={'pots': self.pots, 'sensor_types': config.sensor_types}, executor='bluetooth')
-        self.scheduler.add_job(check_moisture_and_water, 'cron', 
+        self.scheduler.add_job(check_watering, 'cron', 
                                day=config.watering_schedule_cron.day, 
                                week=config.watering_schedule_cron.week, 
                                day_of_week=config.watering_schedule_cron.day_of_week, 
                                hour=config.watering_schedule_cron.hour, 
                                minute=config.watering_schedule_cron.minute, 
-                               kwargs={'pots': self.pots, 'scheduler': self.scheduler}, coalesce=True, executor='bluetooth')
+                               kwargs={'pots': self.pots, 'scheduler': self.scheduler}, misfire_grace_time=30, coalesce=True, executor='bluetooth')
 
         self.scheduler.start()
