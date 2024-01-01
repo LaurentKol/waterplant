@@ -21,7 +21,8 @@ template = {
         'minute': confuse.Optional(confuse.String(default='0')),
     },
     'logfile': '/tmp/waterplant.log',
-    'loglevel': confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'], default='INFO'),
+    'log_level_default': confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'], default='INFO'),
+    'log_level_modules': confuse.MappingValues(confuse.Choice(choices=['DEBUG','INFO','WARN','ERROR'])),
     'miflora_bluetooth_adapter': confuse.Optional(confuse.String(default='hci0')),
     'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
     'watering_duration_seconds': 30,
@@ -36,7 +37,7 @@ template = {
     },
     'pots': confuse.Sequence({
         'name': str,
-        'watering_triggers': confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time'], default=['dryness_threshold','min_watering_time'])),
+        'watering_triggers': confuse.Optional(confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time'])), default=['dryness_threshold','min_watering_time']),
         'dryness_threshold': 30,
         'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
         'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='10m'),

@@ -6,7 +6,7 @@ import sys
 
 from RPi import GPIO
 # import pdb_attach
-# pdb_attach.listen(50000)
+# pdb_attach.listen(50001) # python -m pdb_attach $(ps -ax  | grep 'python -m waterplant' | grep -v grep | gawk '{ print $1 }') 50000
 
 from waterplant.core import Waterplant
 from waterplant.api.gqlapiserver import GqlApiServer 
@@ -16,9 +16,9 @@ from waterplant.config import config
 if __name__ == '__main__':
 
     logging.basicConfig(
-        filename=config.logfile,format='%(asctime)s [%(levelname)s] %(message)s',
+        filename=config.logfile,format='%(asctime)s [%(name)s] [%(levelname)s] %(message)s',
         datefmt='%Y/%m/%d %H:%M:%S %Z',
-        level=logging.getLevelName(config.loglevel),
+        level=logging.getLevelName(config.log_level_default),
         force=True
     )
     logging.info('Waterplant app starting')
@@ -39,6 +39,10 @@ if __name__ == '__main__':
     
     logging.debug('GraphQL API server starting')
     threading.Thread(target=gql_api_server, daemon=True).start()
+
+    for module, level in config.log_level_modules.items():
+        logging.info(f'Setting log level for {module} to {level}')
+        logging.getLogger(module).setLevel(logging.getLevelName(level))
 
     # Cleanup GPIOs when exiting
     def signal_handler(sig, frame):

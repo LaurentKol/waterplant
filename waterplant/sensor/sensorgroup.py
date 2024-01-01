@@ -39,9 +39,7 @@ class SensorsGroup:
                         hahelper.set_sensor_measurements(sensor_type, f'sensor.{config.homeassistant.entity_prefix}_sensor_{sensor.name}_{sensor_type}', measurement)
 
             if sensor_type in measurements and measurements[sensor_type]:
-                logging.debug(f'measurements[sensor_type].values(): {measurements[sensor_type].values()}')
                 sensor_measurements_avg = statistics.mean(measurements[sensor_type].values())
-                logging.debug(f'Aggregate {sensor_type} measurements: {sensor_measurements_avg}')
                 measurements[sensor_type].update({'average': sensor_measurements_avg})
 
                 if config.homeassistant.api_base_url:

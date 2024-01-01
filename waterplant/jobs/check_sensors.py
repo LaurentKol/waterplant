@@ -10,4 +10,4 @@ def check_sensors(pots: List[Pot], sensor_types: List[str]):
     for pot in pots:
         for sensor_type in sensor_types:
             measurements = pot.sensors.get_measurements([sensor_type])
-            logging.debug(f'check_sensors - pot: {pot.name}, sensor_type: {sensor_type}, measurements: {measurements}')
+            logging.info(f'Pot: {pot.name}, sensor_type: {sensor_type}, measurements: {measurements}')

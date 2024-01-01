@@ -19,7 +19,7 @@ class MifloraSensor(BaseSensor):
     def get_generic_measurement(self, mi_type) -> Optional[int]:
         try:
             measurement = self.sensor_poller.parameter_value(mi_type)
-            logging.debug(f'{self.name} {mi_type} measurement: {measurement}')
+            # logging.debug(f'{self.name} {mi_type} measurement: {measurement}')
             self.last_successful_reading_ts = datetime.now()
             self.last_successful_reading_and_no_notification_ts = datetime.now()
             self.consecutive_failed_reading = 0

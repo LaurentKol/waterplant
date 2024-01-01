@@ -13,7 +13,7 @@ def check_watering(pots: List[Pot], scheduler):
     '''Test each watering_triggers for each pots (as defined in config) and schedule job to water pots accordingly'''
     for pot in pots:
         if pot.sprinkler.last_watering + pot.max_watering_frequency > datetime.now():
-            logging.debug(f'{pot.name} was recently watered ({pot.sprinkler.last_watering} + {pot.max_watering_frequency} > now), skipping checks')
+            logging.info(f'Pot {pot.name} was recently watered ({pot.sprinkler.last_watering} + {pot.max_watering_frequency} > now), skipping watering trigger checks')
             continue
 
         for watering_trigger_check_func_name in pot.watering_triggers:
