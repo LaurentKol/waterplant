@@ -40,7 +40,7 @@ template = {
         'watering_triggers': confuse.Optional(confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time'])), default=['dryness_threshold','min_watering_time']),
         'dryness_threshold': 30,
         'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
-        'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='10m'),
+        'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='25m'),
         'sprinkler_pin': 8,
         'sprinkler_pin_off_state': confuse.Optional(bool, default=False), # False = GPIO.LOW and True = GPIO.HIGH
         'sprinkler_disabled': confuse.Optional(bool, default=False),
