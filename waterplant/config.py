@@ -26,6 +26,9 @@ template = {
     'miflora_bluetooth_adapter': confuse.Optional(confuse.String(default='hci0')),
     'miflora_cache_timeout': 600, # That's default from miflora module: https://github.com/basnijholt/miflora/blob/be6161c6d56edfb95a1c6233a2ef9f5227040104/miflora/miflora_poller.py#L54
     'watering_duration_seconds': 30,
+    'weatherapi_com_key': confuse.Optional(confuse.String(default=None)),
+    'weatherapi_location': confuse.Optional(confuse.String(default='Tokyo')),
+    'weatherapi_range_days': confuse.Optional(confuse.Integer(default=7)),
     'sprinkler_pump_drymode': bool,
     'homeassistant': {
         'entity_prefix': confuse.Optional(confuse.String(default='waterplant')),
@@ -37,10 +40,17 @@ template = {
     },
     'pots': confuse.Sequence({
         'name': str,
-        'watering_triggers': confuse.Optional(confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time'])), default=['dryness_threshold','min_watering_time']),
+        'watering_triggers': confuse.Optional(confuse.Sequence(confuse.Choice(choices=['dryness_threshold','min_watering_time_basic','min_watering_time_recent_weather'])), default=['dryness_threshold','min_watering_time_recent_weather']),
         'dryness_threshold': 30,
-        'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
         'max_watering_frequency': confuse.String(pattern=frequency_regexp, default='25m'),
+        'min_watering_frequency': confuse.String(pattern=frequency_regexp, default='7d'),
+        # Use by the watering trigger 'min_watering_time_recent_weather', avg max daily temperature over 'weatherapi_range_days' will be used to interpolate min_watering_time.
+        # Format is [[temperature1, min_watering_frequency1], [temperature2, min_watering_frequency2], ...]
+        # Default is if avg_max_temperature is 0C, water at least every 10 days, if avg_max_temperature is 40C, water at least every 1/2 day.
+        'min_watering_time_recent_weather': confuse.Optional(
+                confuse.Sequence({confuse.Pairs()}),
+                default=[[0,10],[5,9],[10,7],[15,6],[20,5],[25,3],[30,2],[35,1],[40,0.5]]
+        ),
         'sprinkler_pin': 8,
         'sprinkler_pin_off_state': confuse.Optional(bool, default=False), # False = GPIO.LOW and True = GPIO.HIGH
         'sprinkler_disabled': confuse.Optional(bool, default=False),

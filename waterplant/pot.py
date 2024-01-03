@@ -10,8 +10,9 @@ class Pot:
                  name: str,
                  watering_triggers: List[str],
                  dryness_threshold: int,
-                 min_watering_frequency: str,
                  max_watering_frequency: str,
+                 min_watering_frequency: str,
+                 min_watering_time_recent_weather: list,
                  sprinkler_pin: int,
                  sprinkler_pin_off_state: bool,
                  sprinkler_disabled: bool,
@@ -20,8 +21,9 @@ class Pot:
         self.name = name
         self.watering_triggers = watering_triggers
         self.dryness_threshold = dryness_threshold
-        self.min_watering_frequency = parse_duration_string(min_watering_frequency)
         self.max_watering_frequency = parse_duration_string(max_watering_frequency)
+        self.min_watering_frequency = parse_duration_string(min_watering_frequency)
+        self.min_watering_time_recent_weather = min_watering_time_recent_weather
         self.sensors = SensorsGroup(name, sensors)
         self.sprinkler = Sprinkler(name, sprinkler_pin, sprinkler_pin_off_state, sprinkler_disabled)
 

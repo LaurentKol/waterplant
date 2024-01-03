@@ -1,14 +1,9 @@
+See config.py for all config options and default values.
+
 # Host/IP to listen on for the GraphQL API
 # No SSL nor authentification support so strongly recommended to use localhost.
 api_listening_ip: localhost 
 
-# Watering config
-check_for_watering_freq_seconds: 10
-watering_duration_seconds: 20
-sprinkler_pump_drymode: no
-watering_schedule_time:
-  from_hour: '06:00'
-  to_hour: '09:00'
 
 # MiFlora sensors config
 miflora_cache_timeout: 600 # Default from MiFlora module. Reducing cache duration increase sensor's battery usage.
@@ -25,7 +20,7 @@ homeassistant:
   notify_service: mobile_app_iphone
 
 
-# Each pot has a single sprinkler and one or more MiFlora sensors. 
+# Each pot has a single sprinkler and one or more sensors.
 # If multiple sensors, average moisture measurement is used.
 pots:
  - name: plant0
