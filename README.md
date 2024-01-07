@@ -95,7 +95,7 @@ exit 0
 
 # Miscellaneous
 
-At this point there's no proper Home-assistant integration however if you want to configure a switch to force water pots, you can do it as below in HA's `configurations.yaml`
+At this point there's no proper Home-assistant integration however if you want to configure a switch to manually trigger watering, you can do it as below in HA's `configurations.yaml`
 ```
   - platform: command_line
     switches:
