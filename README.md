@@ -93,14 +93,69 @@ su -l ubuntu -c "cd /home/ubuntu/waterplant ; source venv/bin/activate ; screen 
 exit 0
 ```
 
-# Miscellaneous
+# Home-assistant integration
 
-At this point there's no proper Home-assistant integration however if you want to configure a switch to manually trigger watering, you can do it as below in HA's `configurations.yaml`
+At this point there's no proper Home-assistant integration, however if you want to configure switches to manually trigger watering, you can do it as below in HA's `configurations.yaml`
 ```
   - platform: command_line
     switches:
       waterplant_pump0:
         command_on: 'curl -s "http://localhost:5000/graphql" --header "Content-Type: application/json" --data-raw ''{"query":"mutation { sprinklerForceWatering(name: \"plant0\") } ","variables":null}'' '
+```
+Then button entities will be available in Home-assistant and you can refer them in Lovelace frontend, here's an example of of using Apexcharts card to show Buttons to manually trigger watering and moisture levels graphs.
+
+For sensors metrics to get pushed to Home-assistant, all you need to do is to set config parameters _api_base_url_ and _long_live_token_ in _homeassistant_ section.
+
+<img width="471" alt="ha_apex_moisture_graphs" src="https://github.com/LaurentKol/waterplant/assets/1433441/b9db1534-7bf0-4636-b182-b80edc2ea668">
+<img width="458" alt="ha_apex_manual_watering_buttons" src="https://github.com/LaurentKol/waterplant/assets/1433441/77b8fe4f-80ad-44cc-86e8-61850f8a91dd">
+
+```
+type: entities
+entities:
+  - entity: switch.waterplant_mint
+    name: Mint
+    secondary_info: last-updated
+  - entity: switch.waterplant_rosemary
+    name: Rosemary
+    secondary_info: last-updated
+  - entity: switch.waterplant_stairs
+    name: Stairs plants
+    secondary_info: last-updated
+  - entity: switch.waterplant_westwall
+    name: Westwall plants
+    secondary_info: last-updated
+  - entity: sensor.waterplant_heartbeat
+title: Manual watering (waterplant)
+```
+
+```
+type: custom:apexcharts-card
+header:
+  show: true
+  title: Moisture levels (4 days) (waterplant)
+  show_states: true
+  colorize_states: true
+graph_span: 4d
+all_series_config:
+  show:
+    legend_value: false
+  stroke_width: 2
+  group_by:
+    func: avg
+    duration: 10min
+series:
+  - entity: sensor.waterplant_pot_mint_moisture
+    name: Mint
+    color: f1c40f
+  - entity: sensor.waterplant_pot_rosemary_moisture
+    name: Rosemary
+    color: 2ecc71
+  - entity: sensor.waterplant_pot_stairs_moisture
+    name: Stairs
+    color: e74c3c
+  - entity: sensor.waterplant_pot_westwall_moisture
+    name: WestWall
+    color: 9b59b6
 ```
 
 # Hardware implementations
