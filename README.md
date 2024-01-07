@@ -1,20 +1,22 @@
 # Waterplant
-Python daemon that automatically water your plant based on moisture level.
+Python daemon that automatically water your plant based on moisture level, historical weather data and/or time.
 
-Suggested hardware is a Raspberry Pi 3 (or earlier with Bluetooth USB dongle), MiFlora sensors and some pumps or solenoid valves connected to Raspberry Pi's GPIOs.
+Suggested hardware is a Raspberry Pi (with Bluetooth USB dongle if earlier than Pi 3), MiFlora sensors and some pumps or solenoid valves connected to Raspberry Pi's GPIOs.
 
 # Features
 
 ## Automatic watering
-3 types of check can be used to trigger watering and can be used simultaneously. These are configured using _watering_triggers_ parameter.
-The frequency of watering check are configured using _watering_schedule_cron_. Each of these parameters are configurable per pot.
+3 types of check can be used to trigger watering. These are configured using _watering_triggers_ parameter, multiple can be used in parallel. 
+
+For example if your sensors become unavailable (e.g: battery ran out), you can still rely on historical weather data or just time to continue to periodically watering. Each of these parameters are configurable per pot.
+
+The frequency of watering check is configured using _watering_schedule_cron_. Watering will not trigger if last watering happened sooner than _max_watering_frequency_ to prevent over-watering.
 
 ### dryness_threshold
 Check moisture level of each pot using sensors (e.g: MiFlora) and trigger watering if below a threshold.
 
 Configurable parameters are:
 - dryness_threshold: watering is triggered if sensor moisture level is below this threshold.
-- max_watering_frequency: watering will not trigger if last watering happened less than this value. Can be expressed in days [d], hours [h], minutes [m] or seconds [s]. 
 
 ### min_watering_time_basic
 Water pots at least every certain amount of time. This check rely on each pot's last watering time.
@@ -23,16 +25,16 @@ Configurable parameters are:
 - min_watering_frequency: time frequency can be expressed in days [d], hours [h], minutes [m] or seconds [s]. 
 
 ### min_watering_time_recent_weather
-Water pots at least every certain amount of time using weather historical data, more precisely on the max average temperature for last N days. This check rely on each pot's last watering time.
+Water pots at least every certain amount of time using weather historical data, it looks the max average temperature for last N days. This check rely on each pot's last watering time.
 The minimum watering frequency will be interpolate from a list of pairs of temperature and min_watering_frequency.
 
 Configurable parameters are:
-- weatherapi_com_key: Sign-up for free on https://www.weatherapi.com/ and get API key.
+- weatherapi_com_key: Sign-up for free on https://www.weatherapi.com/ and get an API key.
 - weatherapi_location: See [q parameter of weatherapi](https://www.weatherapi.com/docs/#intro-request). Support city name, Latitude and Longitude coordinates and more. 
-- weatherapi_range_days: number of days to look at to calculate "average maximum daily temperature", weatherapi free plan only allows 7 days of historical data.
-- min_watering_time_recent_weather: List of pairs of [temperature, min]. Format is [[temperature1, min_watering_frequency1], [temperature2, min_watering_frequency2], ...]. See config.py for default values
+- weatherapi_range_days: number of days to look at to calculate "average maximum daily temperature", weatherapi.com free plan only allows 7 days of historical data.
+- min_watering_time_recent_weather: List of pairs of [temperature, min]. Format is [[temperature1, min_watering_frequency1], [temperature2, min_watering_frequency2], ...]. See config.py for default values.
 
-Requests to api.weatherapi.com are cached so you should only be using 1 per pot per day at most. 
+Requests to api.weatherapi.com are cached so you should only be using 1 call per pot per day at most. 
 
 ## API
 GraphQL API allows to get a list of pots and to force watering of a pot.
@@ -48,8 +50,8 @@ Below instructions are for Ubuntu on Raspberry Pi, adjust as necessary:
 ```
 git clone https://github.com/LaurentKol/waterplant.git
 cd ~/waterplant
-sudo apt install python3-virtualenv libglib2.0-dev bluetooth pi-bluetooth
-virtualenv --python=python3.8 venv
+sudo apt install python3-virtualenv libglib2.0-dev bluetooth pi-bluetooth cmake
+virtualenv --python=python3.10 venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -70,7 +72,7 @@ source venv/bin/activate
 python -m waterplant
 ```
 
-4. Ensure the GPIOs controlling your pumps/valves are set off/closed at boot time. You can do this by editing `/boot/firmware/usercfg.txt` for Ubuntu 20 (Focal) or `/boot/firmware/config.txt` for Ubuntu 22 (Jammy). In this case off/closed is LOW. 
+4. Ensure the GPIOs controlling your pumps/valves are set off/closed at boot time. You can do this by editing `/boot/config.txt`, `/boot/firmware/usercfg.txt` or `/boot/firmware/config.txt` depending on your Ubuntu version. In this case off/closed is LOW. 
 ```
 gpio=<GPIO-of-pump-1>=op,dl
 ...
